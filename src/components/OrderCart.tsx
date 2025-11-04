@@ -1,4 +1,3 @@
-import React from 'react';
 import type { PedidoItem } from '../types';
 
 interface OrderCartProps {

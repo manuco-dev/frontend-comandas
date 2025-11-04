@@ -1,4 +1,4 @@
-import React from 'react';
+// React import no es necesario con JSX moderno
 import { useApp } from '../context/appcontext';
 import { Link } from 'react-router-dom';
 

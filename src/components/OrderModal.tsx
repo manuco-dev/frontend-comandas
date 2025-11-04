@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { MenuItem } from '../types';
 
 interface OrderModalProps {
@@ -109,8 +109,14 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
               borderRadius: '8px',
               transition: 'all 0.2s'
             }}
-            onMouseEnter={(e) => !isSubmitting && (e.target.style.backgroundColor = '#f3f4f6')}
-            onMouseLeave={(e) => (e.target.style.backgroundColor = 'transparent')}
+            onMouseEnter={(e) => {
+              if (!isSubmitting) {
+                (e.currentTarget as HTMLElement).style.backgroundColor = '#f3f4f6';
+              }
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
+            }}
           >
             ✕
           </button>
@@ -279,8 +285,14 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
                 cursor: isSubmitting ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s'
               }}
-              onMouseEnter={(e) => !isSubmitting && (e.target.style.backgroundColor = '#e5e7eb')}
-              onMouseLeave={(e) => (e.target.style.backgroundColor = '#f3f4f6')}
+              onMouseEnter={(e) => {
+                if (!isSubmitting) {
+                  (e.currentTarget as HTMLElement).style.backgroundColor = '#e5e7eb';
+                }
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.backgroundColor = '#f3f4f6';
+              }}
             >
               Cancelar
             </button>

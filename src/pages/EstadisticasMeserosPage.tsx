@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import type { PeriodoEstadistica, EstadisticasMeserosResponse } from '../types';
 import { useApp } from '../context/appcontext';
@@ -65,7 +65,7 @@ export default function EstadisticasMeserosPage() {
       <PageHeader
         title="📈 Ventas por mesero"
         subtitle="Estadísticas por periodo"
-        right={meseroActual?.esAdmin ? (<span className="badge badge-info">Admin</span>) : undefined}
+        right={meseroActual?.usuario === 'admin' ? (<span className="badge badge-info">Admin</span>) : undefined}
       />
 
       <PeriodSelector />

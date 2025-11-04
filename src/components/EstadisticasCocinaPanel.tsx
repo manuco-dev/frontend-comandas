@@ -1,11 +1,10 @@
-import React from 'react';
 import type { EstadisticasCocina } from '../services/cocinaService';
 
 interface EstadisticasCocinaPanelProps {
   estadisticas: EstadisticasCocina;
 }
 
-const EstadisticasCocinaPanel: React.FC<EstadisticasCocinaPanelProps> = ({ estadisticas }) => {
+function EstadisticasCocinaPanel({ estadisticas }: EstadisticasCocinaPanelProps) {
   const formatearTiempo = (minutos: number): string => {
     if (minutos < 60) {
       return `${Math.round(minutos)}m`;
@@ -277,6 +276,6 @@ const EstadisticasCocinaPanel: React.FC<EstadisticasCocinaPanelProps> = ({ estad
       </div>
     </div>
   );
-};
+}
 
 export default EstadisticasCocinaPanel;

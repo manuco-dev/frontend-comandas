@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/appcontext';
-import { Mesero } from '../types';
+import type { Mesero } from '../types';
 import axios from 'axios';
 
 export default function AdminPanel() {

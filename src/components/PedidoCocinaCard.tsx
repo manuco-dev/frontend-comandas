@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { PedidoCocina } from '../services/cocinaService';
 
 interface PedidoCocinaCardProps {
@@ -199,7 +199,9 @@ const PedidoCocinaCard: React.FC<PedidoCocinaCardProps> = ({
 
       {/* Información del mesero y hora/fecha de toma del pedido */}
       <div className="mesero-info">
-        <span>👨‍💼 Mesero: {pedido.mesero?.nombre || 'No asignado'}</span>
+        <span>
+          👨‍💼 Mesero: {typeof pedido.mesero === 'object' ? pedido.mesero.nombre : 'No asignado'}
+        </span>
         <span>
           🕐 Tomado: {new Date(pedido.timestamp).toLocaleDateString()} {new Date(pedido.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </span>
@@ -249,7 +251,7 @@ const PedidoCocinaCard: React.FC<PedidoCocinaCardProps> = ({
         )}
       </div>
 
-      <style jsx>{`
+      <style>{`
         .pedido-cocina-card {
           background: white;
           border-radius: 12px;

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useApp } from '../context/appcontext';
 import OrderModal from './OrderModal';
 import type { MenuItem } from '../types';
@@ -75,9 +75,7 @@ export default function RestaurantMenu({ onCreateOrder }: RestaurantMenuProps) {
     await onCreateOrder(orderData);
   };
 
-  const getItemQuantityInCart = (itemName: string) => {
-    return 0; // Ya no usamos carrito, siempre retorna 0
-  };
+  // Ya no usamos carrito
 
   return (
     <div style={{
@@ -178,7 +176,6 @@ export default function RestaurantMenu({ onCreateOrder }: RestaurantMenuProps) {
         gap: '1.5rem'
       }}>
         {filteredMenu.map(item => {
-          const quantityInCart = getItemQuantityInCart(item.nombre);
           const categoryColor = categoryColors[item.categoria] || categoryColors.default;
           
           return (

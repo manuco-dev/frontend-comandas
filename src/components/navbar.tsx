@@ -1,4 +1,4 @@
-import React from 'react';
+// React default import not needed for JSX
 import { Link, useLocation } from 'react-router-dom';
 import { useApp } from '../context/appcontext';
 

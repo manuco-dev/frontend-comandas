@@ -17,6 +17,10 @@ export interface MenuItem {
   precio: number;
   categoria: string;
   disponible: boolean;
+  imagen?: string;
+  ingredientes?: string[];
+  alergenos?: string[];
+  tiempoPreparacion?: number;
 }
 
 export interface Pedido {
@@ -53,6 +57,11 @@ export interface Mesero {
   identificacion: string;
   usuario: string;
   activo: boolean;
+  esAdmin?: boolean;
+  turno?: 'mañana' | 'tarde' | 'noche' | 'completo';
+  telefono?: string;
+  email?: string;
+  salario?: number;
 }
 
 export interface Estadisticas {

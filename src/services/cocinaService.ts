@@ -1,4 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+import type { Mesero } from '../types';
 
 export interface PedidoCocina {
   _id: string;
@@ -15,7 +16,7 @@ export interface PedidoCocina {
   total: number;
   estado: 'pendiente' | 'aceptado' | 'preparando' | 'listo' | 'entregado';
   estadoCocina: 'nuevo' | 'aceptado' | 'en_preparacion' | 'listo_para_entrega';
-  mesero: string;
+  mesero: string | Mesero;
   timestamp: string;
   tiempoAceptado?: string;
   tiempoPreparacion?: string;
@@ -36,10 +37,15 @@ export interface PedidoCocina {
 
 export interface EstadisticasCocina {
   pedidosDelDia: number;
+  pedidosPorHora: number;
   pedidosNuevos: number;
   pedidosAceptados: number;
   pedidosEnPreparacion: number;
   pedidosListos: number;
+  ingresosTotales: number;
+  ingresoPromedioPorPedido: number;
+  tasaCompletado: number;
+  pedidosCompletados: number;
   tiempoPromedioAceptacion: number;
   tiempoPromedioPreparacion: number;
   tiempoPromedioTotal: number;
@@ -243,5 +249,4 @@ class CocinaService {
 export const cocinaService = new CocinaService();
 export default cocinaService;
 
-// Exportar tipos para uso en otros archivos
-export type { PedidoCocina, EstadisticasCocina };
+// Tipos ya están exportados como interfaces arriba

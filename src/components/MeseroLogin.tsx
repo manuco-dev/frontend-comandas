@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useApp } from '../context/appcontext';
 
 interface MeseroLoginProps {
@@ -12,7 +12,7 @@ export default function MeseroLogin({ onLoginSuccess }: MeseroLoginProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: FormEvent) {
     e.preventDefault();
     setIsLoading(true);
     setError('');

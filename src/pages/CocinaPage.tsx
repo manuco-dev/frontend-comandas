@@ -427,7 +427,7 @@ const CocinaPage: React.FC = () => {
             <p>Cargando pedidos...</p>
           </div>
         ) : vistaActual === 'estadisticas' ? (
-          <EstadisticasCocinaPanel estadisticas={estadisticas} />
+          estadisticas ? <EstadisticasCocinaPanel estadisticas={estadisticas} /> : null
         ) : vistaActual === 'columnas' ? (
           <div className="columnas-container">
             {/* Columna 1: Nuevos */}
@@ -536,7 +536,7 @@ const CocinaPage: React.FC = () => {
         )}
       </div>
 
-      <style jsx>{`
+      <style>{`
         .cocina-page {
           min-height: 100vh;
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

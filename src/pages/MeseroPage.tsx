@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useApp } from '../context/appcontext';
 import { getSocket } from '../services/socket';
 import type { MenuItem, Pedido } from '../types';
@@ -11,7 +11,7 @@ type ViewMode = 'menu' | 'orders';
 export default function MeseroPage() {
   const { pedidos, meseroActual, crearPedido } = useApp();
   const [currentView, setCurrentView] = useState<ViewMode>('menu');
-  const { isMobile, isTablet, width } = useResponsive();
+  const { isMobile } = useResponsive();
 
   // Configurar WebSocket para actualizaciones en tiempo real
   useEffect(() => {
@@ -127,7 +127,7 @@ export default function MeseroPage() {
       return;
     }
 
-    const pedido = {
+    const pedido: Omit<Pedido, '_id' | 'timestamp' | 'estado'> = {
       identificationType: 'nombre',
       customerName: orderData.customerName,
       customerLocation: orderData.customerLocation,
