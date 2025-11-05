@@ -4,6 +4,8 @@ import { getSocket } from '../services/socket';
 import type { Pedido, MenuItem, Mesero, EstadoPedido, Estadisticas } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// Asegurar baseURL global para todas las llamadas axios (incluido AdminPanel)
+axios.defaults.baseURL = API_URL;
 
 type SessionInfo = {
   expiresAt: string;

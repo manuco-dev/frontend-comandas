@@ -3,7 +3,7 @@ import { useApp } from '../context/appcontext';
 import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
-  const { getEstadisticas, pedidos, notificaciones } = useApp();
+  const { getEstadisticas, pedidos, notificaciones, meseroActual } = useApp();
   const stats = getEstadisticas();
 
   return (
@@ -66,7 +66,7 @@ export default function Dashboard() {
           gap: '1.5rem' 
         }}>
           <Link 
-            to="/" 
+            to="/cocina" 
             className="btn btn-lg"
             style={{ 
               display: 'flex', 
@@ -80,10 +80,10 @@ export default function Dashboard() {
               minHeight: '80px'
             }}
           >
-            <span style={{ fontSize: '2rem' }}>📊</span>
+            <span style={{ fontSize: '2rem' }}>🍳</span>
             <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: '700' }}>Dashboard</div>
-              <div style={{ fontSize: '0.9rem', opacity: '0.9' }}>Panel de control</div>
+              <div style={{ fontWeight: '700' }}>Área de Cocina</div>
+              <div style={{ fontSize: '0.9rem', opacity: '0.9' }}>Panel de preparación</div>
             </div>
           </Link>
           
@@ -109,7 +109,8 @@ export default function Dashboard() {
             </div>
           </Link>
           
-          <button 
+          <Link 
+            to="/estadisticas-meseros" 
             className="btn btn-lg"
             style={{ 
               display: 'flex', 
@@ -118,19 +119,41 @@ export default function Dashboard() {
               gap: '0.75rem',
               padding: '1.5rem 2rem',
               fontSize: '1.2rem',
-              background: 'linear-gradient(135deg, #fa709a, #fee140)',
-              minHeight: '80px',
-              opacity: '0.7',
-              cursor: 'not-allowed'
+              textDecoration: 'none',
+              background: 'linear-gradient(135deg, #60a5fa, #3b82f6)',
+              minHeight: '80px'
             }}
-            disabled
           >
-            <span style={{ fontSize: '2rem' }}>👨‍🍳</span>
+            <span style={{ fontSize: '2rem' }}>📈</span>
             <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: '700' }}>Cocina</div>
-              <div style={{ fontSize: '0.9rem', opacity: '0.9' }}>Próximamente</div>
+              <div style={{ fontWeight: '700' }}>Ventas Meseros</div>
+              <div style={{ fontSize: '0.9rem', opacity: '0.9' }}>Estadísticas y filtros</div>
             </div>
-          </button>
+          </Link>
+          
+          {meseroActual?.esAdmin && (
+            <Link 
+              to="/admin"
+              className="btn btn-lg"
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                gap: '0.75rem',
+                padding: '1.5rem 2rem',
+                fontSize: '1.2rem',
+                textDecoration: 'none',
+                background: 'linear-gradient(135deg, #8b5cf6, #6366f1)',
+                minHeight: '80px'
+              }}
+            >
+              <span style={{ fontSize: '2rem' }}>🛡️</span>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontWeight: '700' }}>Gestión de Usuarios</div>
+                <div style={{ fontSize: '0.9rem', opacity: '0.9' }}>Crear meseros y administradores</div>
+              </div>
+            </Link>
+          )}
         </div>
       </div>
 

@@ -163,6 +163,25 @@ export default function MeseroPage() {
     });
   }, [pedidos, meseroActual]);
 
+  // Métricas tipo dashboard para el mesero
+  const pedidosHoyMesero = useMemo(() => {
+    const today = new Date();
+    return pedidosMesero.filter(p => {
+      const d = new Date(p.timestamp);
+      return d.getFullYear() === today.getFullYear() &&
+        d.getMonth() === today.getMonth() &&
+        d.getDate() === today.getDate();
+    });
+  }, [pedidosMesero]);
+
+  const ventasHoyMesero = useMemo(() => {
+    return pedidosHoyMesero.reduce((sum, p) => sum + (p.total || 0), 0);
+  }, [pedidosHoyMesero]);
+
+  const pedidosActivosMesero = useMemo(() => {
+    return pedidosMesero.filter(p => p.estado !== 'entregado').length;
+  }, [pedidosMesero]);
+
   // Si no hay mesero logueado, mostrar login
   if (!meseroActual) {
     return <MeseroLogin />;
@@ -288,7 +307,29 @@ export default function MeseroPage() {
         />
       )}
 
-      {currentView === 'orders' && (
+      {currentView === 'orders' && (<>
+        <div className="container">
+          <div className="card">
+            <div className="card-header">
+              <div className="card-title">Panel de ventas</div>
+              <div className="card-subtitle">Resumen de hoy</div>
+            </div>
+            <div className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-value">{pedidosHoyMesero.length}</div>
+                <div className="stat-label">Pedidos hoy</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-value">${ventasHoyMesero.toLocaleString()}</div>
+                <div className="stat-label">Ventas hoy</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-value">{pedidosActivosMesero}</div>
+                <div className="stat-label">Pedidos activos</div>
+              </div>
+            </div>
+          </div>
+        </div>
         <div style={{
           background: 'white',
           borderRadius: isMobile ? '15px' : '20px',
@@ -754,7 +795,7 @@ export default function MeseroPage() {
             )}
           </div>
         </div>
-      )}
+      </>)}
     </div>
   );
 }

@@ -15,6 +15,7 @@ export default function AdminPanel() {
     password: '',
     telefono: '',
     email: '',
+    turno: 'mañana',
     salario: 0,
     esAdmin: false
   });
@@ -37,15 +38,26 @@ export default function AdminPanel() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const payload: any = { ...formData };
+      // Si estamos editando y el password está vacío, no enviarlo para evitar validación
+      if (editingMesero && !payload.password) {
+        delete payload.password;
+      }
+      // Eliminar salario del payload en creación; si backend lo requiere, asignar valor por defecto mínimo
+      if (!editingMesero) {
+        // No queremos pedir salario; backend actual requiere un valor truthy
+        // Asignamos un valor por defecto mínimo para evitar 400 mientras se ajusta backend
+        payload.salario = payload.salario ?? 1;
+      }
       if (editingMesero) {
-        await axios.put(`/api/meseros/${editingMesero._id}`, formData);
+        await axios.put(`/api/meseros/${editingMesero._id}`, payload);
       } else {
-        await axios.post('/api/meseros', formData);
+        await axios.post('/api/meseros', payload);
       }
       await fetchMeseros();
       resetForm();
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Error al guardar mesero');
+      alert(error.response?.data?.error || error.response?.data?.message || 'Error al guardar mesero');
     }
   };
 
@@ -77,6 +89,7 @@ export default function AdminPanel() {
       password: '',
       telefono: '',
       email: '',
+      turno: 'mañana',
       salario: 0,
       esAdmin: false
     });
@@ -93,6 +106,7 @@ export default function AdminPanel() {
       password: '',
       telefono: mesero.telefono || '',
       email: mesero.email || '',
+      turno: mesero.turno,
       salario: mesero.salario || 0,
       esAdmin: mesero.esAdmin || false
     });
@@ -118,7 +132,7 @@ export default function AdminPanel() {
   return (
     <div className="container">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2 style={{ color: 'white', fontSize: '2.5rem', fontWeight: '700', margin: 0 }}>
+        <h2 style={{ color: '#000', fontSize: '2.5rem', fontWeight: '700', margin: 0 }}>
           🛡️ Panel de Administración
         </h2>
         <div style={{ display: 'flex', gap: '1rem' }}>
@@ -127,7 +141,7 @@ export default function AdminPanel() {
             className="btn"
             style={{ background: 'linear-gradient(135deg, #48bb78, #38a169)' }}
           >
-            ➕ Nuevo Mesero
+            ➕ Nuevo Usuario
           </button>
           <button onClick={logout} className="btn" style={{ background: 'linear-gradient(135deg, #e53e3e, #c53030)' }}>
             Cerrar Sesión
@@ -138,7 +152,7 @@ export default function AdminPanel() {
       {(showCreateForm || editingMesero) && (
         <div className="card" style={{ marginBottom: '2rem' }}>
           <h3 style={{ marginBottom: '1.5rem', color: '#4a5568' }}>
-            {editingMesero ? 'Editar Mesero' : 'Crear Nuevo Mesero'}
+            {editingMesero ? 'Editar Usuario' : 'Crear Usuario'}
           </h3>
           <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
@@ -179,6 +193,7 @@ export default function AdminPanel() {
               <input
                 value={formData.telefono}
                 onChange={e => setFormData({ ...formData, telefono: e.target.value })}
+                required
               />
             </div>
             <div>
@@ -187,24 +202,32 @@ export default function AdminPanel() {
                 type="email"
                 value={formData.email}
                 onChange={e => setFormData({ ...formData, email: e.target.value })}
+                required
               />
             </div>
             <div>
-              <label>Salario</label>
-              <input
-                type="number"
-                value={formData.salario}
-                onChange={e => setFormData({ ...formData, salario: Number(e.target.value) })}
-              />
+              <label>Turno</label>
+              <select
+                value={formData.turno}
+                onChange={e => setFormData({ ...formData, turno: e.target.value as Mesero['turno'] })}
+                required
+              >
+                <option value="mañana">Mañana</option>
+                <option value="tarde">Tarde</option>
+                <option value="noche">Noche</option>
+                <option value="completo">Completo</option>
+              </select>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <input
-                type="checkbox"
-                id="esAdmin"
-                checked={formData.esAdmin}
-                onChange={e => setFormData({ ...formData, esAdmin: e.target.checked })}
-              />
-              <label htmlFor="esAdmin">Es Administrador</label>
+            {/* Campo de salario eliminado según requerimiento */}
+            <div>
+              <label>Rol</label>
+              <select
+                value={formData.esAdmin ? 'admin' : 'mesero'}
+                onChange={e => setFormData({ ...formData, esAdmin: e.target.value === 'admin' })}
+              >
+                <option value="mesero">Mesero</option>
+                <option value="admin">Admin</option>
+              </select>
             </div>
             <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
               <button type="button" onClick={resetForm} className="btn" style={{ background: '#718096' }}>
@@ -219,7 +242,7 @@ export default function AdminPanel() {
       )}
 
       <div className="card">
-        <h3 style={{ marginBottom: '1.5rem', color: '#4a5568' }}>Lista de Meseros</h3>
+        <h3 style={{ marginBottom: '1.5rem', color: '#4a5568' }}>Lista de Usuarios</h3>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>

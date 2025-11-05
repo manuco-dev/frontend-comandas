@@ -1,89 +1,82 @@
 
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { AppProvider, useApp } from './context/appcontext';
 import Dashboard from './pages/dashboard';
 import MeseroPage from './pages/MeseroPage';
 import CocinaPage from './pages/CocinaPage';
 import EstadisticasMeserosPage from './pages/EstadisticasMeserosPage';
+import AdminPanel from './pages/AdminPanel';
 import SessionTimer from './components/SessionTimer';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function Navigation() {
   const location = useLocation();
   const { meseroActual, logout } = useApp();
-  
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
+
+  const isActive = (path: string) => (location.pathname === path ? 'active' : '');
 
   return (
-    <nav className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 text-white shadow-lg">
-      <div className="container mx-auto px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-6">
-            <Link 
-              to="/" 
-              className={`px-4 py-2 rounded-lg transition-all duration-200 ${
-                isActive('/') 
-                  ? 'bg-white bg-opacity-20 text-white font-semibold' 
-                  : 'text-blue-100 hover:text-white hover:bg-white hover:bg-opacity-10'
-              }`}
-            >
-              📊 Dashboard
-            </Link>
-            <Link 
-              to="/mesero" 
-              className={`px-4 py-2 rounded-lg transition-all duration-200 ${
-                isActive('/mesero') 
-                  ? 'bg-white bg-opacity-20 text-white font-semibold' 
-                  : 'text-blue-100 hover:text-white hover:bg-white hover:bg-opacity-10'
-              }`}
-            >
-              👨‍🍳 Mesero
-            </Link>
-            <Link 
-              to="/cocina" 
-              className={`px-4 py-2 rounded-lg transition-all duration-200 ${
-                isActive('/cocina') 
-                  ? 'bg-white bg-opacity-20 text-white font-semibold' 
-                  : 'text-blue-100 hover:text-white hover:bg-white hover:bg-opacity-10'
-              }`}
-            >
-              🍳 Cocina
-            </Link>
-            <Link 
-              to="/estadisticas-meseros" 
-              className={`px-4 py-2 rounded-lg transition-all duration-200 ${
-                isActive('/estadisticas-meseros') 
-                  ? 'bg-white bg-opacity-20 text-white font-semibold' 
-                  : 'text-blue-100 hover:text-white hover:bg-white hover:bg-opacity-10'
-              }`}
-            >
-              📈 Ventas Meseros
-            </Link>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            {meseroActual && <SessionTimer />}
-            {meseroActual && (
-              <div className="flex items-center space-x-3">
-                <span className="text-blue-100">
-                  Hola, <strong className="text-white">{meseroActual.nombre}</strong>
-                  {meseroActual.esAdmin && <span className="ml-1 text-yellow-300">👑</span>}
-                </span>
-                <button
-                  onClick={logout}
-                  className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm transition-colors duration-200"
-                >
-                  Cerrar Sesión
-                </button>
-              </div>
-            )}
-          </div>
+    <nav>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+        {/* Marca */}
+        <Link 
+          to="/" 
+          style={{ 
+            fontSize: '1.25rem', 
+            fontWeight: 700, 
+            textDecoration: 'none',
+            background: 'linear-gradient(135deg, #667eea, #764ba2)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}
+        >
+          🍽️ Comandas
+        </Link>
+
+        {/* Links de navegación */}
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
+          <Link className={`nav-link ${isActive('/mesero')}`} to="/mesero">👨‍💼 Mesero</Link>
+          {meseroActual?.esAdmin && (
+            <>
+              <Link className={`nav-link ${isActive('/')}`} to="/">📊 Dashboard</Link>
+              <Link className={`nav-link ${isActive('/cocina')}`} to="/cocina">🍳 Cocina</Link>
+              <Link className={`nav-link ${isActive('/estadisticas-meseros')}`} to="/estadisticas-meseros">📈 Ventas Meseros</Link>
+              <Link className={`nav-link ${isActive('/admin')}`} to="/admin">🛡️ Admin</Link>
+            </>
+          )}
+        </div>
+
+        {/* Sesión y cierre */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          {meseroActual && <SessionTimer />}
+          {meseroActual && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ color: 'rgba(255,255,255,0.85)' }}>
+                Hola, <strong style={{ color: '#fff' }}>{meseroActual.nombre}</strong>
+                {meseroActual.esAdmin && <span style={{ marginLeft: '0.25rem' }}>👑</span>}
+              </span>
+              <button
+                onClick={logout}
+                className="btn"
+                style={{ background: 'linear-gradient(135deg, #e53e3e, #c53030)', padding: '8px 14px', fontSize: '0.875rem' }}
+              >
+                Cerrar Sesión
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </nav>
   );
+}
+
+function AdminRoute({ children }: { children: JSX.Element }) {
+  const { meseroActual } = useApp();
+  if (!meseroActual?.esAdmin) {
+    return <Navigate to="/mesero" replace />;
+  }
+  return children;
 }
 
 function App() {
@@ -96,10 +89,27 @@ function App() {
             
             <main className="container mx-auto px-6 py-8">
               <Routes>
-                <Route path="/" element={<Dashboard />} />
                 <Route path="/mesero" element={<MeseroPage />} />
-                <Route path="/cocina" element={<CocinaPage />} />
-                <Route path="/estadisticas-meseros" element={<EstadisticasMeserosPage />} />
+                <Route path="/" element={
+                  <AdminRoute>
+                    <Dashboard />
+                  </AdminRoute>
+                } />
+                <Route path="/cocina" element={
+                  <AdminRoute>
+                    <CocinaPage />
+                  </AdminRoute>
+                } />
+                <Route path="/estadisticas-meseros" element={
+                  <AdminRoute>
+                    <EstadisticasMeserosPage />
+                  </AdminRoute>
+                } />
+                <Route path="/admin" element={
+                  <AdminRoute>
+                    <AdminPanel />
+                  </AdminRoute>
+                } />
               </Routes>
             </main>
           </div>
