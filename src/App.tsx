@@ -1,4 +1,5 @@
 
+import type { ReactElement } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { AppProvider, useApp } from './context/appcontext';
 import Dashboard from './pages/dashboard';
@@ -71,7 +72,7 @@ function Navigation() {
   );
 }
 
-function AdminRoute({ children }: { children: JSX.Element }) {
+function AdminRoute({ children }: { children: ReactElement }) {
   const { meseroActual } = useApp();
   if (!meseroActual?.esAdmin) {
     return <Navigate to="/mesero" replace />;

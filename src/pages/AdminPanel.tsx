@@ -8,17 +8,19 @@ export default function AdminPanel() {
   const [meseros, setMeseros] = useState<Mesero[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingMesero, setEditingMesero] = useState<Mesero | null>(null);
-  const [formData, setFormData] = useState({
-    nombre: '',
-    identificacion: '',
-    usuario: '',
-    password: '',
-    telefono: '',
-    email: '',
-    turno: 'mañana',
-    salario: 0,
-    esAdmin: false
-  });
+  type Turno = 'mañana' | 'tarde' | 'noche' | 'completo';
+  const [formData, setFormData] = useState<{ nombre: string; identificacion: string; usuario: string; password: string; telefono: string; email: string; turno: Turno; esAdmin: boolean; }>(
+    {
+      nombre: '',
+      identificacion: '',
+      usuario: '',
+      password: '',
+      telefono: '',
+      email: '',
+      turno: 'mañana',
+      esAdmin: false
+    }
+  );
 
   useEffect(() => {
     if (meseroActual?.esAdmin) {
@@ -90,7 +92,6 @@ export default function AdminPanel() {
       telefono: '',
       email: '',
       turno: 'mañana',
-      salario: 0,
       esAdmin: false
     });
     setShowCreateForm(false);
@@ -106,8 +107,7 @@ export default function AdminPanel() {
       password: '',
       telefono: mesero.telefono || '',
       email: mesero.email || '',
-      turno: mesero.turno,
-      salario: mesero.salario || 0,
+      turno: (mesero.turno as Turno) || 'mañana',
       esAdmin: mesero.esAdmin || false
     });
     setShowCreateForm(true);
@@ -209,7 +209,7 @@ export default function AdminPanel() {
               <label>Turno</label>
               <select
                 value={formData.turno}
-                onChange={e => setFormData({ ...formData, turno: e.target.value as Mesero['turno'] })}
+                onChange={e => setFormData({ ...formData, turno: e.target.value as Turno })}
                 required
               >
                 <option value="mañana">Mañana</option>
