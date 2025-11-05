@@ -7,6 +7,7 @@ import MeseroPage from './pages/MeseroPage';
 import CocinaPage from './pages/CocinaPage';
 import EstadisticasMeserosPage from './pages/EstadisticasMeserosPage';
 import AdminPanel from './pages/AdminPanel';
+import AuditoriaPage from './pages/AuditoriaPage';
 import SessionTimer from './components/SessionTimer';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -44,6 +45,7 @@ function Navigation() {
               <Link className={`nav-link ${isActive('/cocina')}`} to="/cocina">🍳 Cocina</Link>
               <Link className={`nav-link ${isActive('/estadisticas-meseros')}`} to="/estadisticas-meseros">📈 Ventas Meseros</Link>
               <Link className={`nav-link ${isActive('/admin')}`} to="/admin">🛡️ Admin</Link>
+              <Link className={`nav-link ${isActive('/auditoria')}`} to="/auditoria">📝 Auditoría</Link>
             </>
           )}
         </div>
@@ -109,6 +111,11 @@ function App() {
                 <Route path="/admin" element={
                   <AdminRoute>
                     <AdminPanel />
+                  </AdminRoute>
+                } />
+                <Route path="/auditoria" element={
+                  <AdminRoute>
+                    <AuditoriaPage />
                   </AdminRoute>
                 } />
               </Routes>

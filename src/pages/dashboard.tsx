@@ -1,10 +1,36 @@
 // React import no es necesario con JSX moderno
+import { useEffect, useState } from 'react';
 import { useApp } from '../context/appcontext';
 import { Link } from 'react-router-dom';
+import { getAuditLogs, type AuditLog } from '../services/auditService';
 
 export default function Dashboard() {
-  const { getEstadisticas, pedidos, notificaciones, meseroActual } = useApp();
+  const { getEstadisticas, pedidos, notificaciones, meseroActual, token } = useApp();
   const stats = getEstadisticas();
+
+  // Auditoría reciente (solo admin)
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [auditError, setAuditError] = useState<string | null>(null);
+
+  async function fetchAudit() {
+    if (!meseroActual?.esAdmin) return;
+    setAuditLoading(true);
+    setAuditError(null);
+    try {
+      const logs = await getAuditLogs({ limit: 10, token });
+      setAuditLogs(logs);
+    } catch (e: any) {
+      setAuditError(e?.response?.data?.error || 'Error cargando auditoría');
+    } finally {
+      setAuditLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchAudit();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [meseroActual?.esAdmin]);
 
   return (
     <div className="container">
@@ -151,6 +177,30 @@ export default function Dashboard() {
               <div style={{ textAlign: 'left' }}>
                 <div style={{ fontWeight: '700' }}>Gestión de Usuarios</div>
                 <div style={{ fontSize: '0.9rem', opacity: '0.9' }}>Crear meseros y administradores</div>
+              </div>
+            </Link>
+          )}
+
+          {meseroActual?.esAdmin && (
+            <Link 
+              to="/auditoria"
+              className="btn btn-lg"
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                gap: '0.75rem',
+                padding: '1.5rem 2rem',
+                fontSize: '1.2rem',
+                textDecoration: 'none',
+                background: 'linear-gradient(135deg, #f59e0b, #f97316)',
+                minHeight: '80px'
+              }}
+            >
+              <span style={{ fontSize: '2rem' }}>📝</span>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontWeight: '700' }}>Auditoría del Sistema</div>
+                <div style={{ fontSize: '0.9rem', opacity: '0.9' }}>Registro de acciones de usuarios</div>
               </div>
             </Link>
           )}
@@ -336,6 +386,52 @@ export default function Dashboard() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Auditoría reciente */}
+      {meseroActual?.esAdmin && (
+        <div className="card" style={{ marginTop: '1rem' }}>
+          <div className="card-header">
+            <h3 className="card-title">📝 Auditoría reciente</h3>
+            <p className="card-subtitle">Últimas acciones registradas</p>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <button className="btn btn-secondary" onClick={fetchAudit} disabled={auditLoading}>
+              {auditLoading ? 'Cargando…' : 'Actualizar'}
+            </button>
+            <Link to="/auditoria" className="btn">Ver todo</Link>
+          </div>
+          {auditError && <div className="alert alert-error">{auditError}</div>}
+          <div style={{ overflowX: 'auto' }}>
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Actor</th>
+                  <th>Rol</th>
+                  <th>Acción</th>
+                  <th>Descripción</th>
+                </tr>
+              </thead>
+              <tbody>
+                {auditLogs.map(l => (
+                  <tr key={l._id}>
+                    <td>{new Date(l.createdAt).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}</td>
+                    <td>{l.actorNombre ? `${l.actorNombre} (${l.actorUsuario || ''})` : (l.actorUsuario || '—')}</td>
+                    <td>{l.actorEsAdmin ? 'Admin' : 'Mesero'}</td>
+                    <td>{l.action}</td>
+                    <td>{l.description || ''}</td>
+                  </tr>
+                ))}
+                {auditLogs.length === 0 && !auditLoading && (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: 'center', padding: '1rem' }}>Sin registros</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
