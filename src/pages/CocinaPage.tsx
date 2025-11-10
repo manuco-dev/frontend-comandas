@@ -1,19 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { cocinaService } from '../services/cocinaService';
-import type { PedidoCocina, EstadisticasCocina } from '../services/cocinaService';
+import type { PedidoCocina } from '../services/cocinaService';
 import { subscribeToKitchenEvents, unsubscribeFromKitchenEvents, joinKitchenRoom, leaveKitchenRoom } from '../services/socket';
 import PedidoCocinaCard from '../components/PedidoCocinaCard';
-import EstadisticasCocinaPanel from '../components/EstadisticasCocinaPanel';
 import { soundNotifications } from '../utils/soundNotifications';
 import PedidoDetalleModal from '../components/PedidoDetalleModal';
 
-type VistaActual = 'todos' | 'nuevos' | 'aceptados' | 'preparacion' | 'listos' | 'estadisticas';
+type VistaActual = 'todos' | 'nuevos' | 'aceptados' | 'preparacion' | 'listos';
 type FiltroEstado = 'todos' | 'nuevo' | 'aceptado' | 'en_preparacion' | 'listo_para_entrega';
 type FiltroPrioridad = 'todos' | 'urgente' | 'alta' | 'normal' | 'baja';
 
 const CocinaPage: React.FC = () => {
   const [pedidos, setPedidos] = useState<PedidoCocina[]>([]);
-  const [estadisticas, setEstadisticas] = useState<EstadisticasCocina | null>(null);
   const [vistaActual, setVistaActual] = useState<VistaActual>('todos');
   const [filtroEstado, setFiltroEstado] = useState<FiltroEstado>('todos');
   const [filtroPrioridad, setFiltroPrioridad] = useState<FiltroPrioridad>('todos');
@@ -59,20 +57,9 @@ const CocinaPage: React.FC = () => {
     }
   }, [vistaActual, filtroEstado, filtroPrioridad]);
 
-  // Cargar estadísticas
-  const cargarEstadisticas = useCallback(async () => {
-    try {
-      const stats = await cocinaService.obtenerEstadisticas();
-      setEstadisticas(stats);
-    } catch (err) {
-      console.error('Error cargando estadísticas:', err);
-    }
-  }, []);
-
   // Efecto para cargar datos iniciales y configurar notificaciones
   useEffect(() => {
     cargarPedidos();
-    cargarEstadisticas();
     
     // Unirse a la sala de cocina
     joinKitchenRoom();
@@ -117,10 +104,6 @@ const CocinaPage: React.FC = () => {
         mostrarNotificacion(`Pedido #${pedidoId.slice(-6).toUpperCase()} cancelado`, 'cancelado');
       },
       
-      estadisticasActualizadas: (nuevasEstadisticas: any) => {
-        console.log('📊 Estadísticas actualizadas:', nuevasEstadisticas);
-        setEstadisticas(nuevasEstadisticas);
-      }
     });
     
     // Cleanup al desmontar
@@ -128,7 +111,7 @@ const CocinaPage: React.FC = () => {
       unsubscribeFromKitchenEvents();
       leaveKitchenRoom();
     };
-  }, [cargarPedidos, cargarEstadisticas]);
+  }, [cargarPedidos]);
 
   // Auto-refresh cada 30 segundos
   useEffect(() => {
@@ -136,11 +119,10 @@ const CocinaPage: React.FC = () => {
     
     const interval = setInterval(() => {
       cargarPedidos();
-      cargarEstadisticas();
     }, 30000);
     
     return () => clearInterval(interval);
-  }, [cargarPedidos, cargarEstadisticas, autoRefresh]);
+  }, [cargarPedidos, autoRefresh]);
 
   // Efecto para recargar pedidos cuando cambien los filtros o vista
   useEffect(() => {
@@ -320,7 +302,7 @@ const CocinaPage: React.FC = () => {
               </button>
             </div>
             <button 
-              onClick={() => { cargarPedidos(); cargarEstadisticas(); }}
+              onClick={() => { cargarPedidos(); }}
               className="refresh-btn"
               disabled={loading}
             >
@@ -365,12 +347,7 @@ const CocinaPage: React.FC = () => {
           >
             🍽️ Listos ({contadores.listos})
           </button>
-          <button
-            className={`nav-btn ${vistaActual === 'estadisticas' ? 'active' : ''}`}
-            onClick={() => setVistaActual('estadisticas')}
-          >
-            📊 Estadísticas
-          </button>
+          
         </div>
 
         {/* Filtros (solo para vista "todos") */}
@@ -420,8 +397,6 @@ const CocinaPage: React.FC = () => {
             <div className="spinner"></div>
             <p>Cargando pedidos...</p>
           </div>
-        ) : vistaActual === 'estadisticas' ? (
-          estadisticas ? <EstadisticasCocinaPanel estadisticas={estadisticas} /> : null
         ) : (
           <div className="pedidos-grid">
             {pedidos.length === 0 ? (

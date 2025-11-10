@@ -8,6 +8,7 @@ export default function AdminPanel() {
   const [meseros, setMeseros] = useState<Mesero[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingMesero, setEditingMesero] = useState<Mesero | null>(null);
+  const [estadoFilter, setEstadoFilter] = useState<'activos' | 'inactivos' | 'todos'>('activos');
   type Turno = 'mañana' | 'tarde' | 'noche' | 'completo';
   const [formData, setFormData] = useState<{ nombre: string; identificacion: string; usuario: string; password: string; telefono: string; email: string; turno: Turno; esAdmin: boolean; }>(
     {
@@ -26,11 +27,17 @@ export default function AdminPanel() {
     if (meseroActual?.esAdmin) {
       fetchMeseros();
     }
-  }, [meseroActual]);
+  }, [meseroActual, estadoFilter]);
 
   const fetchMeseros = async () => {
     try {
-      const response = await axios.get('/api/meseros');
+      let url = '/api/meseros';
+      if (estadoFilter === 'activos') {
+        url = '/api/meseros?activo=true';
+      } else if (estadoFilter === 'inactivos') {
+        url = '/api/meseros?activo=false';
+      }
+      const response = await axios.get(url);
       setMeseros(response.data);
     } catch (error) {
       console.error('Error fetching meseros:', error);
@@ -64,7 +71,7 @@ export default function AdminPanel() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('¿Está seguro de eliminar este mesero?')) {
+    if (confirm('Esto desactivará al usuario y lo ocultará de la lista de activos. ¿Confirmas?')) {
       try {
         await axios.delete(`/api/meseros/${id}`);
         await fetchMeseros();
@@ -242,7 +249,21 @@ export default function AdminPanel() {
       )}
 
       <div className="card">
-        <h3 style={{ marginBottom: '1.5rem', color: '#4a5568' }}>Lista de Usuarios</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <h3 style={{ color: '#4a5568', margin: 0 }}>Lista de Usuarios</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <label style={{ color: '#4a5568', fontWeight: 600 }}>Estado:</label>
+            <select
+              value={estadoFilter}
+              onChange={e => setEstadoFilter(e.target.value as 'activos' | 'inactivos' | 'todos')}
+              style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}
+            >
+              <option value="todos">Todos</option>
+              <option value="activos">Activos</option>
+              <option value="inactivos">Inactivos</option>
+            </select>
+          </div>
+        </div>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
@@ -329,7 +350,7 @@ export default function AdminPanel() {
                           fontSize: '0.875rem'
                         }}
                       >
-                        🗑️ Eliminar
+                        🗑️ Eliminar (desactivar)
                       </button>
                     </div>
                   </td>
