@@ -8,6 +8,7 @@ interface PedidoCocinaCardProps {
   onMarcarListo: (pedidoId: string) => void;
   onCambiarPrioridad: (pedidoId: string, prioridad: 'baja' | 'normal' | 'alta' | 'urgente') => void;
   onAñadirNotas: (pedidoId: string, notas: string) => void;
+  onVerDetalle?: (pedido: PedidoCocina) => void;
 }
 
 const PedidoCocinaCard: React.FC<PedidoCocinaCardProps> = ({
@@ -16,7 +17,8 @@ const PedidoCocinaCard: React.FC<PedidoCocinaCardProps> = ({
   onIniciarPreparacion,
   onMarcarListo,
   onCambiarPrioridad,
-  onAñadirNotas
+  onAñadirNotas,
+  onVerDetalle
 }) => {
   // Validación temprana para evitar errores
   if (!pedido || typeof pedido !== 'object') {
@@ -225,6 +227,15 @@ const PedidoCocinaCard: React.FC<PedidoCocinaCardProps> = ({
 
       {/* Acciones */}
       <div className="acciones">
+        {onVerDetalle && (
+          <button 
+            className="accion-btn detalles"
+            onClick={() => onVerDetalle(pedido)}
+            title="Ver detalles del pedido"
+          >
+            🔎 Ver detalles
+          </button>
+        )}
         {puedeAceptar && (
           <button 
             className="accion-btn aceptar"
@@ -653,6 +664,16 @@ const PedidoCocinaCard: React.FC<PedidoCocinaCardProps> = ({
 
         .listo:hover {
           background: linear-gradient(135deg, #7d3c98, #8e44ad);
+        }
+
+        .detalles {
+          background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+          color: #333;
+          border: 1px solid #dee2e6;
+        }
+
+        .detalles:hover {
+          background: linear-gradient(135deg, #e9ecef, #dee2e6);
         }
 
         @media (max-width: 480px) {

@@ -5,15 +5,16 @@ import { subscribeToKitchenEvents, unsubscribeFromKitchenEvents, joinKitchenRoom
 import PedidoCocinaCard from '../components/PedidoCocinaCard';
 import EstadisticasCocinaPanel from '../components/EstadisticasCocinaPanel';
 import { soundNotifications } from '../utils/soundNotifications';
+import PedidoDetalleModal from '../components/PedidoDetalleModal';
 
-type VistaActual = 'todos' | 'nuevos' | 'aceptados' | 'preparacion' | 'listos' | 'estadisticas' | 'columnas';
+type VistaActual = 'todos' | 'nuevos' | 'aceptados' | 'preparacion' | 'listos' | 'estadisticas';
 type FiltroEstado = 'todos' | 'nuevo' | 'aceptado' | 'en_preparacion' | 'listo_para_entrega';
 type FiltroPrioridad = 'todos' | 'urgente' | 'alta' | 'normal' | 'baja';
 
 const CocinaPage: React.FC = () => {
   const [pedidos, setPedidos] = useState<PedidoCocina[]>([]);
   const [estadisticas, setEstadisticas] = useState<EstadisticasCocina | null>(null);
-  const [vistaActual, setVistaActual] = useState<VistaActual>('columnas');
+  const [vistaActual, setVistaActual] = useState<VistaActual>('todos');
   const [filtroEstado, setFiltroEstado] = useState<FiltroEstado>('todos');
   const [filtroPrioridad, setFiltroPrioridad] = useState<FiltroPrioridad>('todos');
   const [loading, setLoading] = useState(true);
@@ -21,6 +22,7 @@ const CocinaPage: React.FC = () => {
   const [ultimaActualizacion, setUltimaActualizacion] = useState<Date>(new Date());
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(soundNotifications.isEnabledState());
+  const [pedidoSeleccionado, setPedidoSeleccionado] = useState<PedidoCocina | null>(null);
 
   // Cargar pedidos
   const cargarPedidos = useCallback(async () => {
@@ -35,9 +37,6 @@ const CocinaPage: React.FC = () => {
         if (filtroEstado !== 'todos') filtros.estado = filtroEstado;
         if (filtroPrioridad !== 'todos') filtros.prioridad = filtroPrioridad;
         pedidosData = await cocinaService.obtenerPedidos(filtros);
-      } else if (vistaActual === 'columnas') {
-        // Para la vista de columnas, obtenemos todos los pedidos activos
-        pedidosData = await cocinaService.obtenerPedidos({});
       } else if (vistaActual === 'nuevos') {
         pedidosData = await cocinaService.obtenerPedidosNuevos();
       } else if (vistaActual === 'aceptados') {
@@ -335,12 +334,7 @@ const CocinaPage: React.FC = () => {
 
         {/* Navegación por vistas */}
         <div className="vista-navigation">
-          <button
-            className={`nav-btn ${vistaActual === 'columnas' ? 'active' : ''}`}
-            onClick={() => setVistaActual('columnas')}
-          >
-            📊 Vista Columnas
-          </button>
+          
           <button
             className={`nav-btn ${vistaActual === 'todos' ? 'active' : ''}`}
             onClick={() => setVistaActual('todos')}
@@ -428,89 +422,6 @@ const CocinaPage: React.FC = () => {
           </div>
         ) : vistaActual === 'estadisticas' ? (
           estadisticas ? <EstadisticasCocinaPanel estadisticas={estadisticas} /> : null
-        ) : vistaActual === 'columnas' ? (
-          <div className="columnas-container">
-            {/* Columna 1: Nuevos */}
-            <div className="columna nuevos">
-              <div className="columna-header">
-                <h3>🆕 Nuevos ({pedidos.filter(p => p.estadoCocina === 'nuevo').length})</h3>
-              </div>
-              <div className="columna-content">
-                {pedidos
-                  .filter(pedido => pedido && pedido._id && pedido.estadoCocina === 'nuevo')
-                  .map((pedido) => (
-                    <PedidoCocinaCard
-                      key={pedido._id}
-                      pedido={pedido}
-                      onAceptar={handleAceptarPedido}
-                      onIniciarPreparacion={handleIniciarPreparacion}
-                      onMarcarListo={handleMarcarListo}
-                      onCambiarPrioridad={handleCambiarPrioridad}
-                      onAñadirNotas={handleAñadirNotas}
-                    />
-                  ))}
-                {pedidos.filter(p => p.estadoCocina === 'nuevo').length === 0 && (
-                  <div className="columna-vacia">
-                    <p>No hay pedidos nuevos</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Columna 2: En Preparación */}
-            <div className="columna preparacion">
-              <div className="columna-header">
-                <h3>👨‍🍳 En Preparación ({pedidos.filter(p => p.estadoCocina === 'en_preparacion' || p.estadoCocina === 'aceptado').length})</h3>
-              </div>
-              <div className="columna-content">
-                {pedidos
-                  .filter(pedido => pedido && pedido._id && (pedido.estadoCocina === 'en_preparacion' || pedido.estadoCocina === 'aceptado'))
-                  .map((pedido) => (
-                    <PedidoCocinaCard
-                      key={pedido._id}
-                      pedido={pedido}
-                      onAceptar={handleAceptarPedido}
-                      onIniciarPreparacion={handleIniciarPreparacion}
-                      onMarcarListo={handleMarcarListo}
-                      onCambiarPrioridad={handleCambiarPrioridad}
-                      onAñadirNotas={handleAñadirNotas}
-                    />
-                  ))}
-                {pedidos.filter(p => p.estadoCocina === 'en_preparacion' || p.estadoCocina === 'aceptado').length === 0 && (
-                  <div className="columna-vacia">
-                    <p>No hay pedidos en preparación</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Columna 3: Listos */}
-            <div className="columna listos">
-              <div className="columna-header">
-                <h3>🍽️ Listos ({pedidos.filter(p => p.estadoCocina === 'listo_para_entrega').length})</h3>
-              </div>
-              <div className="columna-content">
-                {pedidos
-                  .filter(pedido => pedido && pedido._id && pedido.estadoCocina === 'listo_para_entrega')
-                  .map((pedido) => (
-                    <PedidoCocinaCard
-                      key={pedido._id}
-                      pedido={pedido}
-                      onAceptar={handleAceptarPedido}
-                      onIniciarPreparacion={handleIniciarPreparacion}
-                      onMarcarListo={handleMarcarListo}
-                      onCambiarPrioridad={handleCambiarPrioridad}
-                      onAñadirNotas={handleAñadirNotas}
-                    />
-                  ))}
-                {pedidos.filter(p => p.estadoCocina === 'listo_para_entrega').length === 0 && (
-                  <div className="columna-vacia">
-                    <p>No hay pedidos listos</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
         ) : (
           <div className="pedidos-grid">
             {pedidos.length === 0 ? (
@@ -520,17 +431,18 @@ const CocinaPage: React.FC = () => {
             ) : (
               pedidos
                 .filter(pedido => pedido && pedido._id) // Filtrar pedidos inválidos
-                .map((pedido) => (
-                  <PedidoCocinaCard
-                    key={pedido._id}
-                    pedido={pedido}
-                    onAceptar={handleAceptarPedido}
-                    onIniciarPreparacion={handleIniciarPreparacion}
-                    onMarcarListo={handleMarcarListo}
-                    onCambiarPrioridad={handleCambiarPrioridad}
-                    onAñadirNotas={handleAñadirNotas}
-                  />
-                ))
+              .map((pedido) => (
+                <PedidoCocinaCard
+                  key={pedido._id}
+                  pedido={pedido}
+                  onAceptar={handleAceptarPedido}
+                  onIniciarPreparacion={handleIniciarPreparacion}
+                  onMarcarListo={handleMarcarListo}
+                  onCambiarPrioridad={handleCambiarPrioridad}
+                  onAñadirNotas={handleAñadirNotas}
+                  onVerDetalle={(p) => setPedidoSeleccionado(p)}
+                />
+              ))
             )}
           </div>
         )}
@@ -780,7 +692,7 @@ const CocinaPage: React.FC = () => {
         /* Estilos para las columnas - Optimizado para computador/tablet */
         .columnas-container {
           display: grid;
-          grid-template-columns: 1fr 1fr 1fr;
+          grid-template-columns: 1fr 1fr;
           gap: 20px;
           height: calc(100vh - 280px);
           min-height: 500px;
@@ -972,6 +884,13 @@ const CocinaPage: React.FC = () => {
           }
         }
       `}</style>
+
+      {pedidoSeleccionado && (
+        <PedidoDetalleModal
+          pedido={pedidoSeleccionado}
+          onClose={() => setPedidoSeleccionado(null)}
+        />
+      )}
     </div>
   );
 };
