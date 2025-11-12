@@ -16,6 +16,10 @@ export interface MenuItem {
   descripcion: string;
   precio: number;
   categoria: string;
+  proteina?: 'Carnes' | 'Aves' | 'Cerdo' | 'Pescado';
+  tipoPlato?: string;
+  acompanamientos?: string[];
+  bebida?: string;
   disponible: boolean;
   imagen?: string;
   ingredientes?: string[];

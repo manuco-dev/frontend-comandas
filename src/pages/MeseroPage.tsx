@@ -9,7 +9,7 @@ import { useResponsive } from '../hooks/useResponsive';
 type ViewMode = 'menu' | 'orders';
 
 export default function MeseroPage() {
-  const { pedidos, meseroActual, crearPedido } = useApp();
+  const { pedidos, meseroActual, crearPedido, fetchMenu } = useApp();
   const [currentView, setCurrentView] = useState<ViewMode>('menu');
   const { isMobile } = useResponsive();
 
@@ -40,6 +40,13 @@ export default function MeseroPage() {
       socket.off('pedidos-actualizados');
     };
   }, []);
+
+  // Cargar/actualizar el menú cuando el mesero entra a la vista de menú
+  useEffect(() => {
+    if (currentView === 'menu') {
+      fetchMenu().catch(() => {});
+    }
+  }, [currentView, fetchMenu]);
 
   // Función para obtener el estilo del estado
   const getEstadoStyle = (estado: string, estadoCocina?: string) => {

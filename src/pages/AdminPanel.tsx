@@ -74,6 +74,7 @@ export default function AdminPanel() {
     if (confirm('Esto desactivará al usuario y lo ocultará de la lista de activos. ¿Confirmas?')) {
       try {
         await axios.delete(`/api/meseros/${id}`);
+        alert('Mesero desactivado correctamente');
         await fetchMeseros();
       } catch (error) {
         alert('Error al eliminar mesero');
@@ -84,6 +85,7 @@ export default function AdminPanel() {
   const handleToggleStatus = async (id: string, activo: boolean) => {
     try {
       await axios.patch(`/api/meseros/${id}/estado`, { activo: !activo });
+      alert(!activo ? 'Mesero activado correctamente' : 'Mesero desactivado correctamente');
       await fetchMeseros();
     } catch (error) {
       alert('Error al cambiar estado del mesero');
@@ -336,7 +338,7 @@ export default function AdminPanel() {
                           fontSize: '0.875rem'
                         }}
                       >
-                        {mesero.activo ? '🚫 Desactivar' : '✅ Activar'}
+                        🔄 Alternar estado
                       </button>
                       <button
                         onClick={() => handleDelete(mesero._id)}

@@ -159,6 +159,30 @@ export default function Dashboard() {
           
           {meseroActual?.esAdmin && (
             <Link 
+              to="/gestion-menu"
+              className="btn btn-lg"
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                gap: '0.75rem',
+                padding: '1.5rem 2rem',
+                fontSize: '1.2rem',
+                textDecoration: 'none',
+                background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+                minHeight: '80px'
+              }}
+            >
+              <span style={{ fontSize: '2rem' }}>📋</span>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontWeight: '700' }}>Gestión Menu</div>
+                <div style={{ fontSize: '0.9rem', opacity: '0.9' }}>Organizar por proteína y tipo</div>
+              </div>
+            </Link>
+          )}
+
+          {meseroActual?.esAdmin && (
+            <Link 
               to="/admin"
               className="btn btn-lg"
               style={{ 

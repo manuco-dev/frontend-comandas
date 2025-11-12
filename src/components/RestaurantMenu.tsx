@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../context/appcontext';
 import OrderModal from './OrderModal';
 import type { MenuItem } from '../types';
@@ -30,23 +30,22 @@ const categoryColors: Record<string, string> = {
   'default': '#6b7280'
 };
 
+const PROTEINAS = ['Carnes', 'Aves', 'Cerdo', 'Pescado'] as const;
+
 export default function RestaurantMenu({ onCreateOrder }: RestaurantMenuProps) {
-  const { menu } = useApp();
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const { menu, fetchMenu } = useApp();
+  const [selectedProtein, setSelectedProtein] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
 
-  const categories = useMemo(() => {
-    const cats = Array.from(new Set(menu.map(item => item.categoria)));
-    return ['all', ...cats];
-  }, [menu]);
+  const proteins = useMemo(() => ['all', ...PROTEINAS], []);
 
   const filteredMenu = useMemo(() => {
     let filtered = menu;
     
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(item => item.categoria === selectedCategory);
+    if (selectedProtein !== 'all') {
+      filtered = filtered.filter(item => item.proteina === selectedProtein);
     }
     
     if (searchTerm) {
@@ -57,7 +56,14 @@ export default function RestaurantMenu({ onCreateOrder }: RestaurantMenuProps) {
     }
     
     return filtered;
-  }, [menu, selectedCategory, searchTerm]);
+  }, [menu, selectedProtein, searchTerm]);
+
+  // Asegurar que el menú se cargue al montar el componente
+  useEffect(() => {
+    if (!menu || menu.length === 0) {
+      fetchMenu().catch(() => {});
+    }
+  }, [fetchMenu]);
 
   const handleItemClick = (item: MenuItem) => {
     if (item.disponible) {
@@ -135,17 +141,17 @@ export default function RestaurantMenu({ onCreateOrder }: RestaurantMenuProps) {
         />
       </div>
 
-      {/* Filtros de categoría */}
+      {/* Pestañas de proteína */}
       <div style={{
         display: 'flex',
         gap: '0.75rem',
         marginBottom: '2rem',
         flexWrap: 'wrap'
       }}>
-        {categories.map(category => (
+        {proteins.map(p => (
           <button
-            key={category}
-            onClick={() => setSelectedCategory(category)}
+            key={p}
+            onClick={() => setSelectedProtein(p)}
             style={{
               padding: '0.5rem 1rem',
               border: 'none',
@@ -157,14 +163,13 @@ export default function RestaurantMenu({ onCreateOrder }: RestaurantMenuProps) {
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem',
-              background: selectedCategory === category
+              background: selectedProtein === p
                 ? 'linear-gradient(135deg, #667eea, #764ba2)'
                 : '#f8fafc',
-              color: selectedCategory === category ? 'white' : '#64748b'
+              color: selectedProtein === p ? 'white' : '#64748b'
             }}
           >
-            {category === 'all' ? '🍴' : categoryIcons[category] || categoryIcons.default}
-            {category === 'all' ? 'Todos' : category}
+            {p === 'all' ? '🍴 Todos' : p}
           </button>
         ))}
       </div>

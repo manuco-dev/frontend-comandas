@@ -18,6 +18,7 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
   const [customerLocation, setCustomerLocation] = useState('');
   const [observations, setObservations] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedAcomps, setSelectedAcomps] = useState<string[]>([]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,10 +26,12 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
 
     setIsSubmitting(true);
     try {
+      const acompText = selectedAcomps.length ? `\nAcompañamientos: ${selectedAcomps.join(', ')}` : '';
+      const finalObservations = `${observations.trim()}${acompText}`.trim();
       await onSubmit({
         customerName: customerName.trim(),
         customerLocation: customerLocation.trim(),
-        observations: observations.trim(),
+        observations: finalObservations,
         menuItem
       });
       
@@ -36,6 +39,7 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
       setCustomerName('');
       setCustomerLocation('');
       setObservations('');
+      setSelectedAcomps([]);
       onClose();
     } catch (error) {
       console.error('Error al crear pedido:', error);
@@ -49,6 +53,7 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
       setCustomerName('');
       setCustomerLocation('');
       setObservations('');
+      setSelectedAcomps([]);
       onClose();
     }
   };
@@ -163,6 +168,44 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
           flexDirection: 'column',
           gap: '1.25rem'
         }}>
+          {/* Selección de acompañamientos (si el plato define opciones) */}
+          {menuItem.acompanamientos && menuItem.acompanamientos.length > 0 && (
+            <div>
+              <label style={{
+                display: 'block',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                color: '#374151',
+                marginBottom: '0.5rem'
+              }}>
+                🍟 Acompañamientos
+              </label>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                {menuItem.acompanamientos.map((opt, idx) => {
+                  const selected = selectedAcomps.includes(opt);
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setSelectedAcomps(prev => prev.includes(opt) ? prev.filter(a => a !== opt) : [...prev, opt]);
+                      }}
+                      style={{
+                        padding: '0.5rem 0.75rem',
+                        borderRadius: '9999px',
+                        border: selected ? '2px solid #10b981' : '2px solid #e5e7eb',
+                        background: selected ? 'rgba(16,185,129,0.1)' : 'white',
+                        color: selected ? '#065f46' : '#374151',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {opt}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {/* Nombre del solicitante */}
           <div>
             <label style={{

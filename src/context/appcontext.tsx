@@ -82,6 +82,7 @@ function reducer(state: AppState, action: AppAction): AppState {
 
 type AppContextType = AppState & {
   fetchInicial: () => Promise<void>;
+  fetchMenu: () => Promise<void>;
   crearPedido: (pedido: Omit<Pedido, '_id' | 'timestamp' | 'estado'>) => Promise<void>;
   cambiarEstadoPedido: (pedidoId: string, nuevoEstado: EstadoPedido) => Promise<void>;
   eliminarPedido: (pedidoId: string) => Promise<void>;
@@ -260,6 +261,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<AppContextType>(() => ({
     ...state,
     fetchInicial,
+    fetchMenu,
     crearPedido,
     cambiarEstadoPedido,
     eliminarPedido,

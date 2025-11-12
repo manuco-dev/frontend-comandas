@@ -10,6 +10,7 @@ import AdminPanel from './pages/AdminPanel';
 import AuditoriaPage from './pages/AuditoriaPage';
 import SessionTimer from './components/SessionTimer';
 import ErrorBoundary from './components/ErrorBoundary';
+import MenuManagementPage from './pages/MenuManagementPage';
 
 function Navigation() {
   const location = useLocation();
@@ -44,6 +45,7 @@ function Navigation() {
               <Link className={`nav-link ${isActive('/')}`} to="/">📊 Dashboard</Link>
               <Link className={`nav-link ${isActive('/cocina')}`} to="/cocina">🍳 Cocina</Link>
               <Link className={`nav-link ${isActive('/estadisticas-meseros')}`} to="/estadisticas-meseros">📈 Ventas Meseros</Link>
+              <Link className={`nav-link ${isActive('/gestion-menu')}`} to="/gestion-menu">📋 Gestión Menu</Link>
               <Link className={`nav-link ${isActive('/admin')}`} to="/admin">🛡️ Admin</Link>
               <Link className={`nav-link ${isActive('/auditoria')}`} to="/auditoria">📝 Auditoría</Link>
             </>
@@ -116,6 +118,11 @@ function App() {
                 <Route path="/auditoria" element={
                   <AdminRoute>
                     <AuditoriaPage />
+                  </AdminRoute>
+                } />
+                <Route path="/gestion-menu" element={
+                  <AdminRoute>
+                    <MenuManagementPage />
                   </AdminRoute>
                 } />
               </Routes>
