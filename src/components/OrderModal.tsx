@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { MenuItem } from '../types';
 
 interface OrderModalProps {
@@ -19,6 +19,18 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
   const [observations, setObservations] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedAcomps, setSelectedAcomps] = useState<string[]>([]);
+
+  // Obtener acompañamientos generales guardados en localStorage (fallback)
+  const getGeneralAcompList = (): string[] => {
+    try {
+      const raw = localStorage.getItem('acompanamientosGenerales');
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +69,11 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
       onClose();
     }
   };
+
+  // Reiniciar selección de acompañamientos cuando cambie el plato
+  useEffect(() => {
+    setSelectedAcomps([]);
+  }, [menuItem]);
 
   if (!isOpen || !menuItem) return null;
 
@@ -168,8 +185,14 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
           flexDirection: 'column',
           gap: '1.25rem'
         }}>
-          {/* Selección de acompañamientos (si el plato define opciones) */}
-          {menuItem.acompanamientos && menuItem.acompanamientos.length > 0 && (
+          {/* Selección de acompañamientos: usa los del plato o los generales si no hay */}
+          {(() => {
+            const availableAcomps = (menuItem.acompanamientos && menuItem.acompanamientos.length > 0)
+              ? menuItem.acompanamientos
+              : getGeneralAcompList();
+            if (!availableAcomps || availableAcomps.length === 0) return null;
+            const usingFallback = !(menuItem.acompanamientos && menuItem.acompanamientos.length > 0);
+            return (
             <div>
               <label style={{
                 display: 'block',
@@ -178,10 +201,10 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
                 color: '#374151',
                 marginBottom: '0.5rem'
               }}>
-                🍟 Acompañamientos
+                🍟 Acompañamientos {usingFallback ? ' (generales)' : ''}
               </label>
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                {menuItem.acompanamientos.map((opt, idx) => {
+                {availableAcomps.map((opt, idx) => {
                   const selected = selectedAcomps.includes(opt);
                   return (
                     <button
@@ -205,7 +228,8 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
                 })}
               </div>
             </div>
-          )}
+            );
+          })()}
           {/* Nombre del solicitante */}
           <div>
             <label style={{
