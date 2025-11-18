@@ -3,7 +3,15 @@ import axios from 'axios';
 import { getSocket } from '../services/socket';
 import type { Pedido, MenuItem, Mesero, EstadoPedido, Estadisticas } from '../types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// Resolver API_URL según entorno: en localhost, usa backend local
+function resolveApiUrl(): string {
+  const envUrl = (import.meta as any)?.env?.VITE_API_URL as string | undefined;
+  const host = typeof window !== 'undefined' ? window.location.hostname : '';
+  const isLocal = host === 'localhost' || host === '127.0.0.1';
+  if (isLocal) return 'http://localhost:5000';
+  return envUrl || 'http://localhost:5000';
+}
+const API_URL = resolveApiUrl();
 // Asegurar baseURL global para todas las llamadas axios (incluido AdminPanel)
 axios.defaults.baseURL = API_URL;
 

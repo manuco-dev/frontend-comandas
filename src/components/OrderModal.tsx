@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import axios from 'axios';
 import type { MenuItem } from '../types';
 
 interface OrderModalProps {
@@ -19,10 +20,8 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
   const [observations, setObservations] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedAcomps, setSelectedAcomps] = useState<string[]>([]);
-
-  // Obtener acompañamientos generales guardados en localStorage (fallback)
-  const getGeneralAcompList = (): string[] => {
-    // 1) Intentar desde localStorage
+  const [generalAcomps, setGeneralAcomps] = useState<string[]>(() => {
+    // Inicializar desde localStorage o variable de entorno
     try {
       const raw = localStorage.getItem('acompanamientosGenerales');
       if (raw) {
@@ -30,12 +29,9 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
         if (Array.isArray(parsed)) return parsed;
       }
     } catch {}
-
-    // 2) Respaldar desde variable de entorno (para producción)
     try {
       const envRaw = (import.meta as any)?.env?.VITE_GENERAL_ACOMPS as string | undefined;
       if (!envRaw) return [];
-      // Aceptar JSON ("[\"papas\",\"ensalada\"]") o CSV ("papas, ensalada")
       let list: string[] = [];
       if (envRaw.trim().startsWith('[')) {
         const parsed = JSON.parse(envRaw);
@@ -47,7 +43,10 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
     } catch {
       return [];
     }
-  };
+  });
+
+  // Lista de acompañamientos generales: usa estado (precargado) o vacío
+  const getGeneralAcompList = (): string[] => generalAcomps;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,6 +90,28 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
   useEffect(() => {
     setSelectedAcomps([]);
   }, [menuItem]);
+
+  // Cargar acompañamientos desde API si no están en local/local env
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchGeneralAcomps() {
+      try {
+        const { data } = await axios.get('/api/menu/acompanamientos-generales');
+        const list = Array.isArray(data?.acompanamientos) ? data.acompanamientos : [];
+        if (!cancelled && list.length) {
+          setGeneralAcomps(list);
+          try { localStorage.setItem('acompanamientosGenerales', JSON.stringify(list)); } catch {}
+        }
+      } catch {
+        // Silencioso: si falla, se queda con local/env
+      }
+    }
+    // Solo intentar si no hay nada local
+    if (!generalAcomps || generalAcomps.length === 0) {
+      fetchGeneralAcomps();
+    }
+    return () => { cancelled = true; };
+  }, []);
 
   if (!isOpen || !menuItem) return null;
 
