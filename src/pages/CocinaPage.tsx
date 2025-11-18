@@ -22,6 +22,15 @@ const CocinaPage: React.FC = () => {
   const [soundEnabled, setSoundEnabled] = useState(soundNotifications.isEnabledState());
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState<PedidoCocina | null>(null);
 
+  // Ordenar por más recientes primero (timestamp descendente)
+  const sortByRecent = useCallback((list: PedidoCocina[]) => {
+    return [...list].sort((a, b) => {
+      const ta = Number(a?.timestamp ?? 0);
+      const tb = Number(b?.timestamp ?? 0);
+      return tb - ta; // descendente: más reciente primero
+    });
+  }, []);
+
   // Cargar pedidos
   const cargarPedidos = useCallback(async () => {
     try {
@@ -42,8 +51,9 @@ const CocinaPage: React.FC = () => {
       } else {
         pedidosData = [];
       }
-      
-      setPedidos(pedidosData);
+
+      // Aplicar orden por más recientes
+      setPedidos(sortByRecent(pedidosData));
       setUltimaActualizacion(new Date());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar pedidos');
@@ -71,7 +81,8 @@ const CocinaPage: React.FC = () => {
           return;
         }
         
-        setPedidos(prevPedidos => [pedido, ...prevPedidos]);
+        // Insertar y mantener orden por más recientes
+        setPedidos(prevPedidos => sortByRecent([pedido, ...prevPedidos]));
         
         // Reproducir sonido de notificación
         // Mostrar notificación visual
@@ -87,9 +98,11 @@ const CocinaPage: React.FC = () => {
           return;
         }
         
-        setPedidos(prevPedidos => 
-          prevPedidos.map(p => p._id === pedido._id ? pedido : p)
-        );
+        // Actualizar y reordenar por más recientes
+        setPedidos(prevPedidos => {
+          const updated = prevPedidos.map(p => p._id === pedido._id ? pedido : p);
+          return sortByRecent(updated);
+        });
       },
       
       pedidoCancelado: (pedidoId: string) => {
