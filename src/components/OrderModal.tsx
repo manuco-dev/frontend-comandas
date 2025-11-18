@@ -22,11 +22,28 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
 
   // Obtener acompañamientos generales guardados en localStorage (fallback)
   const getGeneralAcompList = (): string[] => {
+    // 1) Intentar desde localStorage
     try {
       const raw = localStorage.getItem('acompanamientosGenerales');
-      if (!raw) return [];
-      const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed : [];
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+
+    // 2) Respaldar desde variable de entorno (para producción)
+    try {
+      const envRaw = (import.meta as any)?.env?.VITE_GENERAL_ACOMPS as string | undefined;
+      if (!envRaw) return [];
+      // Aceptar JSON ("[\"papas\",\"ensalada\"]") o CSV ("papas, ensalada")
+      let list: string[] = [];
+      if (envRaw.trim().startsWith('[')) {
+        const parsed = JSON.parse(envRaw);
+        if (Array.isArray(parsed)) list = parsed;
+      } else {
+        list = envRaw.split(',').map(s => s.trim()).filter(Boolean);
+      }
+      return Array.from(new Set(list));
     } catch {
       return [];
     }

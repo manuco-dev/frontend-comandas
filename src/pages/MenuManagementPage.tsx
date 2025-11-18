@@ -40,6 +40,22 @@ export default function MenuManagementPage() {
     } catch {}
   }, [acompanamientosGenerales]);
 
+  // Cargar acompañamientos generales desde API al montar
+  useEffect(() => {
+    async function loadGeneralAcomps() {
+      try {
+        const { data } = await axios.get('/api/menu/acompanamientos-generales');
+        const list = Array.isArray(data?.acompanamientos) ? data.acompanamientos : [];
+        if (list.length > 0) {
+          setAcompanamientosGenerales(list);
+        }
+      } catch (err) {
+        // Silencioso: si no existe en backend, seguimos con localStorage
+      }
+    }
+    loadGeneralAcomps();
+  }, []);
+
   async function createItem() {
     try {
       const payload = {
@@ -135,6 +151,21 @@ export default function MenuManagementPage() {
               }}
             >
               Agregar
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={async () => {
+                try {
+                  const payload = { acompanamientos: acompanamientosGenerales };
+                  const { data } = await axios.put('/api/menu/acompanamientos-generales', payload);
+                  const list = Array.isArray(data?.acompanamientos) ? data.acompanamientos : [];
+                  setAcompanamientosGenerales(list);
+                } catch (err) {
+                  alert('Error guardando acompañamientos generales');
+                }
+              }}
+            >
+              Guardar cambios
             </button>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
