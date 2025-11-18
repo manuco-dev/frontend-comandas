@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import type { MenuItem } from '../types';
 import PageHeader from '../components/PageHeader';
@@ -57,7 +57,7 @@ export default function MenuManagementPage() {
         alergenos: formData.alergenos || [],
         tiempoPreparacion: formData.tiempoPreparacion || 15,
       };
-      const { data } = await axios.post<MenuItem>('/api/menu', payload);
+      await axios.post<MenuItem>('/api/menu', payload);
       setShowForm(false);
       setFormData({ nombre: '', descripcion: '', precio: 0, categoria: 'Platos Principales', proteina, tipoPlato: '', acompanamientos: acompanamientosGenerales.slice(), bebida: '', disponible: true, tiempoPreparacion: 15 });
       setFormStep(1);
