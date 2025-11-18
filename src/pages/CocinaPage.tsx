@@ -6,7 +6,7 @@ import PedidoCocinaCard from '../components/PedidoCocinaCard';
 import { soundNotifications } from '../utils/soundNotifications';
 import PedidoDetalleModal from '../components/PedidoDetalleModal';
 
-type VistaActual = 'todos' | 'nuevos' | 'aceptados' | 'preparacion' | 'listos';
+type VistaActual = 'todos' | 'nuevos' | 'listos';
 type FiltroEstado = 'todos' | 'nuevo' | 'aceptado' | 'en_preparacion' | 'listo_para_entrega';
 type FiltroPrioridad = 'todos' | 'urgente' | 'alta' | 'normal' | 'baja';
 
@@ -37,10 +37,6 @@ const CocinaPage: React.FC = () => {
         pedidosData = await cocinaService.obtenerPedidos(filtros);
       } else if (vistaActual === 'nuevos') {
         pedidosData = await cocinaService.obtenerPedidosNuevos();
-      } else if (vistaActual === 'aceptados') {
-        pedidosData = await cocinaService.obtenerPedidosPorEstado('aceptado');
-      } else if (vistaActual === 'preparacion') {
-        pedidosData = await cocinaService.obtenerPedidosEnPreparacion();
       } else if (vistaActual === 'listos') {
         pedidosData = await cocinaService.obtenerPedidosListos();
       } else {
@@ -262,8 +258,6 @@ const CocinaPage: React.FC = () => {
   // Obtener contadores para los botones
   const contadores = {
     nuevos: pedidos.filter(p => p.estadoCocina === 'nuevo').length,
-    aceptados: pedidos.filter(p => p.estadoCocina === 'aceptado').length,
-    preparacion: pedidos.filter(p => p.estadoCocina === 'en_preparacion').length,
     listos: pedidos.filter(p => p.estadoCocina === 'listo_para_entrega').length,
   };
 
@@ -329,18 +323,7 @@ const CocinaPage: React.FC = () => {
           >
             🆕 Nuevos ({contadores.nuevos})
           </button>
-          <button
-            className={`nav-btn ${vistaActual === 'aceptados' ? 'active' : ''} ${contadores.aceptados > 0 ? 'has-items' : ''}`}
-            onClick={() => setVistaActual('aceptados')}
-          >
-            ✅ Aceptados ({contadores.aceptados})
-          </button>
-          <button
-            className={`nav-btn ${vistaActual === 'preparacion' ? 'active' : ''} ${contadores.preparacion > 0 ? 'has-items' : ''}`}
-            onClick={() => setVistaActual('preparacion')}
-          >
-            👨‍🍳 En Preparación ({contadores.preparacion})
-          </button>
+          
           <button
             className={`nav-btn ${vistaActual === 'listos' ? 'active' : ''} ${contadores.listos > 0 ? 'has-items' : ''}`}
             onClick={() => setVistaActual('listos')}

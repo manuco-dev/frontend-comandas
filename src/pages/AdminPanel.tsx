@@ -23,6 +23,13 @@ export default function AdminPanel() {
     }
   );
 
+  // Ventas por mesero (hoy)
+  const [selectedMeseroId, setSelectedMeseroId] = useState<string>('');
+  const [ventasHoyMesero, setVentasHoyMesero] = useState<number>(0);
+  const [pedidosHoyMesero, setPedidosHoyMesero] = useState<number>(0);
+  const [loadingVentas, setLoadingVentas] = useState<boolean>(false);
+  const [errorVentas, setErrorVentas] = useState<string | null>(null);
+
   useEffect(() => {
     if (meseroActual?.esAdmin) {
       fetchMeseros();
@@ -43,6 +50,39 @@ export default function AdminPanel() {
       console.error('Error fetching meseros:', error);
     }
   };
+
+  // Cargar ventas de hoy para el mesero seleccionado
+  useEffect(() => {
+    async function fetchVentasHoy() {
+      if (!selectedMeseroId) {
+        setVentasHoyMesero(0);
+        setPedidosHoyMesero(0);
+        setErrorVentas(null);
+        return;
+      }
+      try {
+        setLoadingVentas(true);
+        setErrorVentas(null);
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const fecha = `${yyyy}-${mm}-${dd}`;
+        const { data } = await axios.get('/api/pedidos', { params: { fecha, mesero: selectedMeseroId } });
+        const pedidos = Array.isArray(data) ? data : [];
+        const ventasTotal = pedidos.reduce((sum: number, p: any) => sum + (Number(p?.total) || 0), 0);
+        setPedidosHoyMesero(pedidos.length);
+        setVentasHoyMesero(ventasTotal);
+      } catch (err: any) {
+        setErrorVentas(err?.response?.data?.error || 'Error cargando ventas del día');
+        setPedidosHoyMesero(0);
+        setVentasHoyMesero(0);
+      } finally {
+        setLoadingVentas(false);
+      }
+    }
+    fetchVentasHoy();
+  }, [selectedMeseroId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,6 +195,47 @@ export default function AdminPanel() {
           <button onClick={logout} className="btn" style={{ background: 'linear-gradient(135deg, #e53e3e, #c53030)' }}>
             Cerrar Sesión
           </button>
+        </div>
+      </div>
+
+      {/* Ventas del día por mesero */}
+      <div className="card" style={{ marginBottom: '2rem' }}>
+        <div className="card-header">
+          <div className="card-title">📈 Ventas del día por mesero</div>
+          <div className="card-subtitle">Selecciona un mesero para ver sus ventas de hoy</div>
+        </div>
+        <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <label style={{ color: '#4a5568', fontWeight: 600 }}>Mesero:</label>
+            <select
+              value={selectedMeseroId}
+              onChange={(e) => setSelectedMeseroId(e.target.value)}
+              style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #e2e8f0', minWidth: '220px' }}
+            >
+              <option value="">-- Seleccionar --</option>
+              {meseros.map(m => (
+                <option key={m._id} value={m._id}>{m.nombre} ({m.usuario})</option>
+              ))}
+            </select>
+            {loadingVentas && <span style={{ color: '#64748b' }}>Cargando…</span>}
+            {errorVentas && <span style={{ color: '#ef4444' }}>❌ {errorVentas}</span>}
+          </div>
+          {selectedMeseroId && (
+            <div className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-value">{pedidosHoyMesero}</div>
+                <div className="stat-label">Pedidos hoy</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-value">{ventasHoyMesero.toLocaleString()}</div>
+                <div className="stat-label">Ventas hoy</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-value">{pedidosHoyMesero > 0 ? (Math.round((ventasHoyMesero / pedidosHoyMesero))).toLocaleString() : 0}</div>
+                <div className="stat-label">Ticket promedio</div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
