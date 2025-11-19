@@ -25,6 +25,10 @@ export interface MenuItem {
   ingredientes?: string[];
   alergenos?: string[];
   tiempoPreparacion?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  fechaCreacion?: string;
+  fechaActualizacion?: string;
 }
 
 export interface Pedido {

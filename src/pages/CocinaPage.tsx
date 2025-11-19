@@ -22,11 +22,11 @@ const CocinaPage: React.FC = () => {
   const [soundEnabled, setSoundEnabled] = useState(soundNotifications.isEnabledState());
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState<PedidoCocina | null>(null);
 
-  // Ordenar por más recientes primero (timestamp descendente)
+  // Ordenar por más recientes primero (timestamp descendente) usando fecha
   const sortByRecent = useCallback((list: PedidoCocina[]) => {
     return [...list].sort((a, b) => {
-      const ta = Number(a?.timestamp ?? 0);
-      const tb = Number(b?.timestamp ?? 0);
+      const ta = a?.timestamp ? new Date(a.timestamp).getTime() : 0;
+      const tb = b?.timestamp ? new Date(b.timestamp).getTime() : 0;
       return tb - ta; // descendente: más reciente primero
     });
   }, []);

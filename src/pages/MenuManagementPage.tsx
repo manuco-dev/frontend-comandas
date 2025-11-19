@@ -244,6 +244,12 @@ export default function MenuManagementPage() {
               {items
                 .filter(it => proteina === 'Carnes' || proteina === 'Aves' || proteina === 'Cerdo' || proteina === 'Pescado' ? (it.proteina ? it.proteina === proteina : true) : true)
                 .filter(it => it.nombre.toLowerCase().includes(itemsSearch.toLowerCase()) || (it.descripcion || '').toLowerCase().includes(itemsSearch.toLowerCase()))
+                .slice()
+                .sort((a, b) => {
+                  const da = (a as any)?.createdAt ? new Date((a as any).createdAt).getTime() : (a as any)?.fechaCreacion ? new Date((a as any).fechaCreacion).getTime() : 0;
+                  const db = (b as any)?.createdAt ? new Date((b as any).createdAt).getTime() : (b as any)?.fechaCreacion ? new Date((b as any).fechaCreacion).getTime() : 0;
+                  return db - da; // más reciente primero
+                })
                 .map(it => (
                   <div key={it._id} className="card" style={{ border: '1px solid #e5e7eb' }}>
                     <div className="card-body" style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.5rem', alignItems: 'center' }}>

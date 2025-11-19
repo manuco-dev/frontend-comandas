@@ -16,7 +16,7 @@ export interface PedidoCocina {
   total: number;
   estado: 'pendiente' | 'aceptado' | 'preparando' | 'listo' | 'entregado';
   estadoCocina: 'nuevo' | 'aceptado' | 'en_preparacion' | 'listo_para_entrega';
-  mesero: string | Mesero;
+  mesero: string | Mesero | null;
   timestamp: string;
   tiempoAceptado?: string;
   tiempoPreparacion?: string;

@@ -202,7 +202,13 @@ const PedidoCocinaCard: React.FC<PedidoCocinaCardProps> = ({
       {/* Información del mesero y hora/fecha de toma del pedido */}
       <div className="mesero-info">
         <span>
-          👨‍💼 Mesero: {typeof pedido.mesero === 'object' ? pedido.mesero.nombre : 'No asignado'}
+          {(() => {
+            const mesero = pedido.mesero;
+            const nombre = mesero && typeof mesero === 'object' && (mesero as any).nombre
+              ? (mesero as any).nombre
+              : (typeof mesero === 'string' ? mesero : null);
+            return `👨‍💼 Mesero: ${nombre || 'No asignado'}`;
+          })()}
         </span>
         <span>
           🕐 Tomado: {new Date(pedido.timestamp).toLocaleDateString()} {new Date(pedido.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
