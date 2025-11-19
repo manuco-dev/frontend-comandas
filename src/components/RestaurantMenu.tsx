@@ -34,6 +34,7 @@ const PROTEINAS = ['Carnes', 'Aves', 'Cerdo', 'Pescado'] as const;
 
 export default function RestaurantMenu({ onCreateOrder }: RestaurantMenuProps) {
   const { menu, fetchMenu } = useApp();
+  const API_URL = (import.meta as any)?.env?.VITE_API_URL || 'http://localhost:5000';
   const [selectedProtein, setSelectedProtein] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -205,6 +206,17 @@ export default function RestaurantMenu({ onCreateOrder }: RestaurantMenuProps) {
                 e.currentTarget.style.boxShadow = 'none';
               }}
             >
+              {/* Imagen del plato si existe */}
+              {item.imagen && (
+                <div style={{ margin: '-1.5rem -1.5rem 1rem -1.5rem' }}>
+                  <img
+                    src={item.imagen.startsWith('/uploads') ? `${API_URL}${item.imagen}` : item.imagen}
+                    alt={item.nombre}
+                    style={{ width: '100%', height: '180px', objectFit: 'cover' }}
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                  />
+                </div>
+              )}
               {/* Indicador de categoría */}
               <div style={{
                 position: 'absolute',

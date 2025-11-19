@@ -183,6 +183,30 @@ export default function Dashboard() {
 
           {meseroActual?.esAdmin && (
             <Link 
+              to="/imagenes-platos"
+              className="btn btn-lg"
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                gap: '0.75rem',
+                padding: '1.5rem 2rem',
+                fontSize: '1.2rem',
+                textDecoration: 'none',
+                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                minHeight: '80px'
+              }}
+            >
+              <span style={{ fontSize: '2rem' }}>🖼️</span>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontWeight: '700' }}>Imágenes Platos</div>
+                <div style={{ fontSize: '0.9rem', opacity: '0.9' }}>Subir y actualizar imágenes</div>
+              </div>
+            </Link>
+          )}
+
+          {meseroActual?.esAdmin && (
+            <Link 
               to="/admin"
               className="btn btn-lg"
               style={{ 
