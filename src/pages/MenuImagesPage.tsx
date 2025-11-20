@@ -32,7 +32,10 @@ export default function MenuImagesPage() {
       const url = res.url || res.downloadUrl;
       if (!url) throw new Error('No se obtuvo URL de Blob');
       const { data } = await axios.put(`/api/menu/${item._id}`, { imagen: url });
-      setItems(prev => prev.map(it => it._id === item._id ? { ...it, imagen: data.imagen || url } : it));
+      // Cache-busting para forzar que el navegador recargue la imagen
+      const newUrl = data.imagen || url;
+      const bustedUrl = `${newUrl}${newUrl.includes('?') ? '&' : '?'}v=${Date.now()}`;
+      setItems(prev => prev.map(it => (it._id === item._id ? { ...it, imagen: bustedUrl } : it)));
       setFile(item._id, null);
     } catch (e: any) {
       alert(e?.response?.data?.error || e?.message || 'Error subiendo imagen');
@@ -77,6 +80,7 @@ export default function MenuImagesPage() {
             </div>
             {item.imagen && (
               <img
+                key={`${item._id}-${item.imagen}`}
                 src={item.imagen.startsWith('/uploads') ? `${API_URL}${item.imagen}` : item.imagen}
                 alt={item.nombre}
                 style={{ width: '100%', height: '180px', objectFit: 'cover' }}
