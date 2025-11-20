@@ -19,6 +19,7 @@ export default function MenuManagementPage() {
   const [itemsSearch, setItemsSearch] = useState('');
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [editForm, setEditForm] = useState<Partial<MenuItem>>({});
+  // Subida de imagen se gestiona exclusivamente en la sección "Imágenes de Platos"
   const [acompanamientosGenerales, setAcompanamientosGenerales] = useState<string[]>(() => {
     try {
       const raw = localStorage.getItem('acompanamientosGenerales');
@@ -94,7 +95,7 @@ export default function MenuManagementPage() {
         acompanamientos: formData.acompanamientos || [],
         bebida: (formData.bebida || '').trim(),
         disponible: formData.disponible ?? true,
-        imagen: formData.imagen || '',
+        // La imagen se gestiona desde la sección "Imágenes de Platos"
         ingredientes: formData.ingredientes || [],
         alergenos: formData.alergenos || [],
         tiempoPreparacion: formData.tiempoPreparacion || 15,
@@ -523,6 +524,7 @@ export default function MenuManagementPage() {
                       onChange={(e) => setFormData(prev => ({ ...prev, bebida: e.target.value }))}
                     />
                   </div>
+
 
                   <div>
                     <label>Tiempo de preparación (min)</label>

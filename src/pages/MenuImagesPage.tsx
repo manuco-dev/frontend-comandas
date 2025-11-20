@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import type { MenuItem } from '../types';
 import PageHeader from '../components/PageHeader';
+import { uploadImageToBlob } from '../services/blobService';
 
 export default function MenuImagesPage() {
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -27,16 +28,14 @@ export default function MenuImagesPage() {
     if (!file) return;
     try {
       setLoadingMap(prev => ({ ...prev, [item._id]: true }));
-      const form = new FormData();
-      form.append('imagen', file);
-      const { data } = await axios.post(`/api/menu/${item._id}/imagen`, form, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      // Actualizar en memoria
-      setItems(prev => prev.map(it => it._id === item._id ? { ...it, imagen: data.imagen || it.imagen } : it));
+      const res = await uploadImageToBlob(file, { folder: 'menu-images' });
+      const url = res.url || res.downloadUrl;
+      if (!url) throw new Error('No se obtuvo URL de Blob');
+      const { data } = await axios.put(`/api/menu/${item._id}`, { imagen: url });
+      setItems(prev => prev.map(it => it._id === item._id ? { ...it, imagen: data.imagen || url } : it));
       setFile(item._id, null);
     } catch (e: any) {
-      alert(e?.response?.data?.error || 'Error subiendo imagen');
+      alert(e?.response?.data?.error || e?.message || 'Error subiendo imagen');
     } finally {
       setLoadingMap(prev => ({ ...prev, [item._id]: false }));
     }
