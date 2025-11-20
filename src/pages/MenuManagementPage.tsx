@@ -320,8 +320,11 @@ export default function MenuManagementPage() {
                   <input className="input" type="number" value={Number(editForm.precio || 0)} onChange={(e) => setEditForm(prev => ({ ...prev, precio: Number(e.target.value) }))} />
                 </div>
                 <div style={{ gridColumn: '1 / -1' }}>
-                  <label>Descripción</label>
+                  <label>Descripción (opcional)</label>
                   <textarea className="input" value={editForm.descripcion || ''} onChange={(e) => setEditForm(prev => ({ ...prev, descripcion: e.target.value }))} />
+                  <div style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                    Úsala para ingredientes, presentación o notas del plato. Opcional.
+                  </div>
                 </div>
                 <div>
                   <label>Categoría</label>
@@ -449,8 +452,11 @@ export default function MenuManagementPage() {
                     <input className="input" type="number" value={formData.precio as number} onChange={(e) => setFormData(prev => ({ ...prev, precio: Number(e.target.value) }))} />
                   </div>
                   <div style={{ gridColumn: '1 / -1' }}>
-                    <label>Descripción</label>
+                    <label>Descripción (opcional)</label>
                     <textarea className="input" value={formData.descripcion || ''} onChange={(e) => setFormData(prev => ({ ...prev, descripcion: e.target.value }))} />
+                    <div style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                      Úsala para ingredientes, presentación o notas del plato. Opcional.
+                    </div>
                   </div>
                   <div>
                     <label>Categoría</label>

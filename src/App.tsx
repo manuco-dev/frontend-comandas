@@ -12,6 +12,7 @@ import SessionTimer from './components/SessionTimer';
 import ErrorBoundary from './components/ErrorBoundary';
 import MenuManagementPage from './pages/MenuManagementPage';
 import MenuImagesPage from './pages/MenuImagesPage';
+import ProteinInventoryPage from './pages/ProteinInventoryPage';
 
 function Navigation() {
   const location = useLocation();
@@ -48,6 +49,7 @@ function Navigation() {
               <Link className={`nav-link ${isActive('/estadisticas-meseros')}`} to="/estadisticas-meseros">📈 Ventas Meseros</Link>
               <Link className={`nav-link ${isActive('/gestion-menu')}`} to="/gestion-menu">📋 Gestión Menu</Link>
               <Link className={`nav-link ${isActive('/imagenes-platos')}`} to="/imagenes-platos">🖼️ Imágenes Platos</Link>
+              <Link className={`nav-link ${isActive('/inventario-proteinas')}`} to="/inventario-proteinas">📦 Inventario Proteínas</Link>
               <Link className={`nav-link ${isActive('/admin')}`} to="/admin">🛡️ Admin</Link>
               <Link className={`nav-link ${isActive('/auditoria')}`} to="/auditoria">📝 Auditoría</Link>
             </>
@@ -130,6 +132,11 @@ function App() {
                 <Route path="/imagenes-platos" element={
                   <AdminRoute>
                     <MenuImagesPage />
+                  </AdminRoute>
+                } />
+                <Route path="/inventario-proteinas" element={
+                  <AdminRoute>
+                    <ProteinInventoryPage />
                   </AdminRoute>
                 } />
               </Routes>
