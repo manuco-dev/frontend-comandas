@@ -45,7 +45,11 @@ const PedidoDetalleModal: React.FC<PedidoDetalleModalProps> = ({ pedido, onClose
             <div><strong>Cliente:</strong> {obtenerCliente()}</div>
             <div><strong>Estado:</strong> {formatEstado(pedido.estadoCocina)}</div>
             <div><strong>Prioridad:</strong> {pedido.prioridad}</div>
-            <div><strong>Mesero:</strong> {typeof pedido.mesero === 'object' ? pedido.mesero.nombre : 'No asignado'}</div>
+            <div><strong>Mesero:</strong> {typeof pedido.mesero === 'object' && pedido.mesero !== null
+              ? pedido.mesero.nombre
+              : (typeof pedido.mesero === 'string' && pedido.mesero.trim().length > 0
+                ? pedido.mesero
+                : 'No asignado')}</div>
             {pedido.customerLocation && (
               <div><strong>Ubicación:</strong> {pedido.customerLocation}</div>
             )}
