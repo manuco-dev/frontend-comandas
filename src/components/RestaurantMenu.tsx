@@ -8,6 +8,7 @@ interface RestaurantMenuProps {
     customerName: string;
     customerLocation: string;
     observations: string;
+    pagado: boolean;
     menuItem: MenuItem;
   }) => void;
 }
@@ -77,6 +78,7 @@ export default function RestaurantMenu({ onCreateOrder }: RestaurantMenuProps) {
     customerName: string;
     customerLocation: string;
     observations: string;
+    pagado: boolean;
     menuItem: MenuItem;
   }) => {
     await onCreateOrder(orderData);

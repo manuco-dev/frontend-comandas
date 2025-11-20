@@ -9,7 +9,7 @@ import { useResponsive } from '../hooks/useResponsive';
 type ViewMode = 'menu' | 'orders';
 
 export default function MeseroPage() {
-  const { pedidos, meseroActual, crearPedido, fetchMenu } = useApp();
+  const { pedidos, meseroActual, crearPedido, fetchMenu, marcarPagoPedido } = useApp();
   const [currentView, setCurrentView] = useState<ViewMode>('menu');
   const { isMobile } = useResponsive();
 
@@ -123,6 +123,7 @@ export default function MeseroPage() {
     customerName: string;
     customerLocation: string;
     observations: string;
+    pagado: boolean;
     menuItem: MenuItem;
   }) => {
     console.log('🔍 DEBUG - meseroActual:', meseroActual);
@@ -146,6 +147,7 @@ export default function MeseroPage() {
       }],
       total: orderData.menuItem.precio,
       mesero: meseroActual._id,
+      pagado: !!orderData.pagado,
     };
     
     console.log('🔍 DEBUG - pedido completo:', JSON.stringify(pedido, null, 2));
@@ -360,7 +362,7 @@ export default function MeseroPage() {
             display: 'grid',
             gap: '1rem'
           }}>
-            {pedidosMesero.map(p => (
+            {pedidosHoyMesero.map(p => (
               <div
                 key={p._id}
                 style={{
@@ -589,7 +591,7 @@ export default function MeseroPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Información adicional del pedido */}
                 <div style={{
                   display: 'grid',
@@ -633,6 +635,34 @@ export default function MeseroPage() {
                         📍 {p.customerLocation}
                       </div>
                     )}
+                  </div>
+
+                  {/* Estado de pago */}
+                  <div style={{
+                    background: '#fefce8',
+                    border: '1px solid #fde68a',
+                    borderRadius: '8px',
+                    padding: '0.75rem'
+                  }}>
+                    <div style={{
+                      fontSize: '0.75rem',
+                      fontWeight: '600',
+                      color: '#92400e',
+                      marginBottom: '0.25rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em'
+                    }}>
+                      💵 Pago
+                    </div>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#374151' }}>
+                      <input
+                        type="checkbox"
+                        checked={!!p.pagado}
+                        onChange={(e) => marcarPagoPedido(p._id, e.target.checked)}
+                        style={{ width: '18px', height: '18px' }}
+                      />
+                      {p.pagado ? 'Pagado' : 'No pagado'}
+                    </label>
                   </div>
 
                   {/* Prioridad */}
@@ -789,15 +819,15 @@ export default function MeseroPage() {
               </div>
             ))}
             
-            {pedidosMesero.length === 0 && (
+            {pedidosHoyMesero.length === 0 && (
               <div style={{
                 textAlign: 'center',
                 padding: '3rem',
                 color: '#6b7280'
               }}>
                 <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📋</div>
-                <h4 style={{ marginBottom: '0.5rem' }}>No tienes pedidos activos</h4>
-                <p>Los pedidos que crees aparecerán aquí</p>
+                <h4 style={{ marginBottom: '0.5rem' }}>No tienes pedidos hoy</h4>
+                <p>Los pedidos de hoy aparecerán aquí</p>
               </div>
             )}
           </div>

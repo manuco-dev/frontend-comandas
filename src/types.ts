@@ -45,6 +45,7 @@ export interface Pedido {
   mesero: string | Mesero;
   timestamp: string;
   prioridad?: 'baja' | 'normal' | 'alta' | 'urgente';
+  pagado?: boolean;
   notas_cocina?: string;
 }
 

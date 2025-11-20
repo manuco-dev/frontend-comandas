@@ -94,6 +94,7 @@ type AppContextType = AppState & {
   crearPedido: (pedido: Omit<Pedido, '_id' | 'timestamp' | 'estado'>) => Promise<void>;
   cambiarEstadoPedido: (pedidoId: string, nuevoEstado: EstadoPedido) => Promise<void>;
   eliminarPedido: (pedidoId: string) => Promise<void>;
+  marcarPagoPedido: (pedidoId: string, pagado: boolean) => Promise<void>;
   loginMesero: (usuario: string, password: string) => Promise<boolean>;
   logout: () => void;
   getEstadisticas: () => Estadisticas;
@@ -233,6 +234,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     socket.emit('eliminar-pedido', pedidoId);
   }
 
+  async function marcarPagoPedido(pedidoId: string, pagado: boolean) {
+    await axios.put(`${API_URL}/api/pedidos/${pedidoId}`, { pagado });
+    await fetchPedidos();
+  }
+
   async function loginMesero(usuario: string, password: string) {
     try {
       const { data } = await axios.post(`${API_URL}/api/meseros/login`, { usuario, password });
@@ -273,6 +279,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     crearPedido,
     cambiarEstadoPedido,
     eliminarPedido,
+    marcarPagoPedido,
     loginMesero,
     logout,
     getEstadisticas,

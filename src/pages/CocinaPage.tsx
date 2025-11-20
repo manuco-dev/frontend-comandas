@@ -214,17 +214,15 @@ const CocinaPage: React.FC = () => {
   }, []);
 
   // Manejar acciones de pedidos
-  const handleAceptarPedido = async (pedidoId: string) => {
-    try {
-      await cocinaService.aceptarPedido(pedidoId);
-      // Los WebSockets manejan la actualización automáticamente
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al aceptar pedido');
-    }
-  };
+  // Acción de "Aceptar" ya no se utiliza; la aceptación se encadena al iniciar preparación
 
   const handleIniciarPreparacion = async (pedidoId: string) => {
     try {
+      // Si el pedido está en estado 'nuevo', primero aceptar y luego iniciar preparación
+      const pedidoActual = pedidos.find(p => p._id === pedidoId);
+      if (pedidoActual?.estadoCocina === 'nuevo') {
+        await cocinaService.aceptarPedido(pedidoId);
+      }
       await cocinaService.iniciarPreparacion(pedidoId);
       // Los WebSockets manejan la actualización automáticamente
     } catch (err) {
@@ -406,7 +404,6 @@ const CocinaPage: React.FC = () => {
                 <PedidoCocinaCard
                   key={pedido._id}
                   pedido={pedido}
-                  onAceptar={handleAceptarPedido}
                   onIniciarPreparacion={handleIniciarPreparacion}
                   onMarcarListo={handleMarcarListo}
                   onCambiarPrioridad={handleCambiarPrioridad}

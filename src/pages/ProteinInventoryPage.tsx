@@ -76,6 +76,7 @@ export default function ProteinInventoryPage() {
   }
 
   const filtered = proteinas.filter(p => p.nombre.toLowerCase().includes(search.toLowerCase()));
+  const reordenList = proteinas.filter(p => p.activo && p.puntoReorden > 0 && p.stock <= p.puntoReorden);
 
   return (
     <div>
@@ -126,6 +127,19 @@ export default function ProteinInventoryPage() {
           </div>
         </div>
         <div className="card-body">
+          {reordenList.length > 0 && (
+            <div style={{
+              marginBottom: '1rem',
+              padding: '0.75rem 1rem',
+              borderRadius: 12,
+              background: '#FEF3C7',
+              color: '#92400E',
+              border: '1px solid #FDE68A'
+            }}>
+              <div style={{ fontWeight: 700, marginBottom: 4 }}>⚠️ Bases en punto de reorden</div>
+              <div style={{ fontSize: '0.95rem' }}>{reordenList.map(p => p.nombre).join(', ')}</div>
+            </div>
+          )}
           {loading && <div>Cargando...</div>}
           {error && <div style={{ color: '#ef4444' }}>{error}</div>}
           {!loading && filtered.length === 0 && <div style={{ color: '#6b7280' }}>No hay proteínas aún</div>}
@@ -148,11 +162,20 @@ export default function ProteinInventoryPage() {
                         <input className="input" value={p.nombre} onChange={e => setProteinas(prev => prev.map(x => (x._id === p._id ? { ...x, nombre: e.target.value } : x)))} onBlur={() => actualizarProteina(p._id, { nombre: p.nombre })} />
                       </td>
                       <td style={{ whiteSpace: 'nowrap' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <button className="btn btn-secondary" onClick={() => ajustarStock(p._id, -1)}>-1</button>
-                          <strong>{p.stock}</strong>
-                          <button className="btn btn-secondary" onClick={() => ajustarStock(p._id, +1)}>+1</button>
-                        </div>
+                        {(p.activo && p.puntoReorden > 0 && p.stock <= p.puntoReorden) ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#B45309' }}>
+                            <button className="btn btn-secondary" onClick={() => ajustarStock(p._id, -1)}>-1</button>
+                            <strong>{p.stock}</strong>
+                            <button className="btn btn-secondary" onClick={() => ajustarStock(p._id, +1)}>+1</button>
+                            <span style={{ padding: '0.15rem 0.5rem', borderRadius: 999, background: '#FDE68A', border: '1px solid #F59E0B', fontSize: '0.8rem' }}>Reorden</span>
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <button className="btn btn-secondary" onClick={() => ajustarStock(p._id, -1)}>-1</button>
+                            <strong>{p.stock}</strong>
+                            <button className="btn btn-secondary" onClick={() => ajustarStock(p._id, +1)}>+1</button>
+                          </div>
+                        )}
                       </td>
                       <td>
                         <input type="number" className="input" value={p.puntoReorden} onChange={e => setProteinas(prev => prev.map(x => (x._id === p._id ? { ...x, puntoReorden: Number(e.target.value) } : x)))} onBlur={() => actualizarProteina(p._id, { puntoReorden: p.puntoReorden })} />

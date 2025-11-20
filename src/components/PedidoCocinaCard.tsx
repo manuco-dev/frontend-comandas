@@ -3,7 +3,6 @@ import type { PedidoCocina } from '../services/cocinaService';
 
 interface PedidoCocinaCardProps {
   pedido: PedidoCocina;
-  onAceptar: (pedidoId: string) => void;
   onIniciarPreparacion: (pedidoId: string) => void;
   onMarcarListo: (pedidoId: string) => void;
   onCambiarPrioridad: (pedidoId: string, prioridad: 'baja' | 'normal' | 'alta' | 'urgente') => void;
@@ -13,7 +12,6 @@ interface PedidoCocinaCardProps {
 
 const PedidoCocinaCard: React.FC<PedidoCocinaCardProps> = ({
   pedido,
-  onAceptar,
   onIniciarPreparacion,
   onMarcarListo,
   onCambiarPrioridad,
@@ -85,8 +83,8 @@ const PedidoCocinaCard: React.FC<PedidoCocinaCardProps> = ({
     setMostrarCambioPrioridad(false);
   };
 
-  const puedeAceptar = pedido.estadoCocina === 'nuevo';
-  const puedeIniciarPreparacion = pedido.estadoCocina === 'aceptado';
+  // Simplificar acciones: permitir iniciar desde 'nuevo' o 'aceptado'
+  const puedeIniciarPreparacion = pedido.estadoCocina === 'aceptado' || pedido.estadoCocina === 'nuevo';
   const puedeMarcarListo = pedido.estadoCocina === 'en_preparacion';
 
   return (
@@ -242,14 +240,7 @@ const PedidoCocinaCard: React.FC<PedidoCocinaCardProps> = ({
             🔎 Ver detalles
           </button>
         )}
-        {puedeAceptar && (
-          <button 
-            className="accion-btn aceptar"
-            onClick={() => onAceptar(pedido._id)}
-          >
-            ✅ Aceptar Pedido
-          </button>
-        )}
+        {/* Acciones simplificadas: solo Iniciar y Listo */}
         {puedeIniciarPreparacion && (
           <button 
             className="accion-btn preparar"

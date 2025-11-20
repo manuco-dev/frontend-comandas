@@ -10,6 +10,7 @@ interface OrderModalProps {
     customerName: string;
     customerLocation: string;
     observations: string;
+    pagado: boolean;
     menuItem: MenuItem;
   }) => void;
 }
@@ -19,31 +20,9 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
   const [customerLocation, setCustomerLocation] = useState('');
   const [observations, setObservations] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPaid, setIsPaid] = useState(false);
   const [selectedAcomps, setSelectedAcomps] = useState<string[]>([]);
-  const [generalAcomps, setGeneralAcomps] = useState<string[]>(() => {
-    // Inicializar desde localStorage o variable de entorno
-    try {
-      const raw = localStorage.getItem('acompanamientosGenerales');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) return parsed;
-      }
-    } catch {}
-    try {
-      const envRaw = (import.meta as any)?.env?.VITE_GENERAL_ACOMPS as string | undefined;
-      if (!envRaw) return [];
-      let list: string[] = [];
-      if (envRaw.trim().startsWith('[')) {
-        const parsed = JSON.parse(envRaw);
-        if (Array.isArray(parsed)) list = parsed;
-      } else {
-        list = envRaw.split(',').map(s => s.trim()).filter(Boolean);
-      }
-      return Array.from(new Set(list));
-    } catch {
-      return [];
-    }
-  });
+  const [generalAcomps, setGeneralAcomps] = useState<string[]>([]);
 
   // Lista de acompañamientos generales: usa estado (precargado) o vacío
   const getGeneralAcompList = (): string[] => generalAcomps;
@@ -60,6 +39,7 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
         customerName: customerName.trim(),
         customerLocation: customerLocation.trim(),
         observations: finalObservations,
+        pagado: isPaid,
         menuItem
       });
       
@@ -67,6 +47,7 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
       setCustomerName('');
       setCustomerLocation('');
       setObservations('');
+      setIsPaid(false);
       setSelectedAcomps([]);
       onClose();
     } catch (error) {
@@ -81,6 +62,7 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
       setCustomerName('');
       setCustomerLocation('');
       setObservations('');
+      setIsPaid(false);
       setSelectedAcomps([]);
       onClose();
     }
@@ -91,27 +73,26 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
     setSelectedAcomps([]);
   }, [menuItem]);
 
-  // Cargar acompañamientos desde API si no están en local/local env
+  // Siempre refrescar acompañamientos generales desde API al abrir el modal
   useEffect(() => {
+    if (!isOpen) return;
     let cancelled = false;
     async function fetchGeneralAcomps() {
       try {
-        const { data } = await axios.get('/api/menu/acompanamientos-generales');
+        // Forzar uso del proxy de Vite ignorando baseURL global
+        const { data } = await axios.get('/api/menu/acompanamientos-generales', { baseURL: '' });
         const list = Array.isArray(data?.acompanamientos) ? data.acompanamientos : [];
-        if (!cancelled && list.length) {
+        if (!cancelled) {
+          // Siempre reflejar lo que devuelve la API (incluido arreglo vacío)
           setGeneralAcomps(list);
-          try { localStorage.setItem('acompanamientosGenerales', JSON.stringify(list)); } catch {}
         }
       } catch {
-        // Silencioso: si falla, se queda con local/env
+        // Silencioso: si falla, no modificar el estado
       }
     }
-    // Solo intentar si no hay nada local
-    if (!generalAcomps || generalAcomps.length === 0) {
-      fetchGeneralAcomps();
-    }
+    fetchGeneralAcomps();
     return () => { cancelled = true; };
-  }, []);
+  }, [isOpen]);
 
   if (!isOpen || !menuItem) return null;
 
@@ -366,6 +347,29 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
               onFocus={(e) => e.target.style.borderColor = '#667eea'}
               onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
             />
+          </div>
+
+          {/* Pago del cliente */}
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: '#374151',
+              marginBottom: '0.5rem'
+            }}>
+              💵 Estado de pago del cliente
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#374151' }}>
+              <input
+                type="checkbox"
+                checked={isPaid}
+                onChange={(e) => setIsPaid(e.target.checked)}
+                disabled={isSubmitting}
+                style={{ width: '18px', height: '18px' }}
+              />
+              Cliente pagó
+            </label>
           </div>
 
           {/* Botones */}

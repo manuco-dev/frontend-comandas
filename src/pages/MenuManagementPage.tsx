@@ -11,7 +11,6 @@ export default function MenuManagementPage() {
   const [proteina, setProteina] = useState<Proteina>('Aves');
   const [showForm, setShowForm] = useState(false);
   const [formStep, setFormStep] = useState<1 | 2>(1);
-  const [acompanamientoInput, setAcompanamientoInput] = useState('');
   const [acompanamientoGeneralInput, setAcompanamientoGeneralInput] = useState('');
   const [activeTab, setActiveTab] = useState<'acomps' | 'nuevo' | 'listado' | 'editar'>('acomps');
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -20,32 +19,20 @@ export default function MenuManagementPage() {
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [editForm, setEditForm] = useState<Partial<MenuItem>>({});
   // Subida de imagen se gestiona exclusivamente en la sección "Imágenes de Platos"
-  const [acompanamientosGenerales, setAcompanamientosGenerales] = useState<string[]>(() => {
-    try {
-      const raw = localStorage.getItem('acompanamientosGenerales');
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [acompanamientosGenerales, setAcompanamientosGenerales] = useState<string[]>([]);
   const [formData, setFormData] = useState<Partial<MenuItem>>({
     nombre: '',
     descripcion: '',
     precio: 0,
     categoria: 'Platos Principales',
     proteina: 'Aves',
-    tipoPlato: '',
     acompanamientos: [],
     bebida: '',
     disponible: true,
     tiempoPreparacion: 15,
   });
 
-  useEffect(() => {
-    try {
-      localStorage.setItem('acompanamientosGenerales', JSON.stringify(acompanamientosGenerales));
-    } catch {}
-  }, [acompanamientosGenerales]);
+  // Eliminado almacenamiento local: los acompañamientos generales solo provienen de la API
 
   // Cargar acompañamientos generales desde API al montar
   useEffect(() => {
@@ -91,7 +78,6 @@ export default function MenuManagementPage() {
         precio: Number(formData.precio || 0),
         categoria: formData.categoria || 'Platos Principales',
         proteina,
-        tipoPlato: (formData.tipoPlato || '').trim(),
         acompanamientos: formData.acompanamientos || [],
         bebida: (formData.bebida || '').trim(),
         disponible: formData.disponible ?? true,
@@ -102,9 +88,8 @@ export default function MenuManagementPage() {
       };
       await axios.post<MenuItem>('/api/menu', payload);
       setShowForm(false);
-      setFormData({ nombre: '', descripcion: '', precio: 0, categoria: 'Platos Principales', proteina, tipoPlato: '', acompanamientos: acompanamientosGenerales.slice(), bebida: '', disponible: true, tiempoPreparacion: 15 });
+      setFormData({ nombre: '', descripcion: '', precio: 0, categoria: 'Platos Principales', proteina, acompanamientos: [], bebida: '', disponible: true, tiempoPreparacion: 15 });
       setFormStep(1);
-      setAcompanamientoInput('');
     } catch (err: any) {
       alert(err?.response?.data?.error || 'Error creando el item');
     }
@@ -124,8 +109,7 @@ export default function MenuManagementPage() {
                 setActiveTab('nuevo');
                 setShowForm(true);
                 setFormStep(1);
-                setFormData({ nombre: '', descripcion: '', precio: 0, categoria: 'Platos Principales', proteina, tipoPlato: '', acompanamientos: acompanamientosGenerales.slice(), bebida: '', disponible: true, tiempoPreparacion: 15 });
-                setAcompanamientoInput('');
+                setFormData({ nombre: '', descripcion: '', precio: 0, categoria: 'Platos Principales', proteina, acompanamientos: [], bebida: '', disponible: true, tiempoPreparacion: 15 });
               }}
             >
               ➕ Nuevo Plato
@@ -184,6 +168,24 @@ export default function MenuManagementPage() {
                 }}
               >
                 Agregar
+              </button>
+              <button
+                className="btn btn-secondary"
+                onClick={async () => {
+                  const confirmClear = window.confirm('¿Vaciar la lista de acompañamientos generales?');
+                  if (!confirmClear) return;
+                  try {
+                    const payload = { acompanamientos: [] };
+                    const { data } = await axios.put('/api/menu/acompanamientos-generales', payload, { baseURL: '' });
+                    const list = Array.isArray(data?.acompanamientos) ? data.acompanamientos : [];
+                    setAcompanamientosGenerales(list);
+                  } catch (err) {
+                    console.error('Error al vaciar acompañamientos generales', err);
+                    alert('Error al vaciar acompañamientos generales');
+                  }
+                }}
+              >
+                Vaciar lista
               </button>
               <button
                 className="btn btn-primary"
@@ -440,9 +442,6 @@ export default function MenuManagementPage() {
                   <div style={{ gridColumn: '1 / -1', opacity: 0.8 }}>
                     Proteína seleccionada: <strong>{proteina}</strong>
                   </div>
-                  <div style={{ gridColumn: '1 / -1', marginBottom: '0.25rem', color: '#6b7280' }}>
-                    Sugeridos: {acompanamientosGenerales.length ? acompanamientosGenerales.join(', ') : '—'}
-                  </div>
                   <div>
                     <label>Nombre</label>
                     <input className="input" value={formData.nombre || ''} onChange={(e) => setFormData(prev => ({ ...prev, nombre: e.target.value }))} />
@@ -463,62 +462,13 @@ export default function MenuManagementPage() {
                     <select className="input" value={formData.categoria || 'Platos Principales'} onChange={(e) => setFormData(prev => ({ ...prev, categoria: e.target.value }))}>
                       <option>Entradas</option>
                       <option>Platos Principales</option>
-                      <option>Postres</option>
                       <option>Bebidas</option>
                       <option>Especiales</option>
                     </select>
                   </div>
-                  <div>
-                    <label>Tipo de plato</label>
-                    <input className="input" value={formData.tipoPlato || ''} onChange={(e) => setFormData(prev => ({ ...prev, tipoPlato: e.target.value }))} placeholder="Ej: Pechuga asada, Pechuga gratinada" />
-                  </div>
+                  {/* Campo "Tipo de plato" eliminado según nueva lógica */}
 
-                  {/* Acompañamientos */}
-                  <div style={{ gridColumn: '1 / -1' }}>
-                    <label>Acompañamientos</label>
-                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                      <input
-                        className="input"
-                        placeholder="Ej: Papas a la francesa"
-                        value={acompanamientoInput}
-                        onChange={(e) => setAcompanamientoInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && acompanamientoInput.trim()) {
-                            setFormData(prev => ({ ...prev, acompanamientos: [...(prev.acompanamientos || []), acompanamientoInput.trim()] }));
-                            setAcompanamientoInput('');
-                          }
-                        }}
-                      />
-                      <button
-                        className="btn btn-secondary"
-                        onClick={() => {
-                          if (acompanamientoInput.trim()) {
-                            setFormData(prev => ({ ...prev, acompanamientos: [...(prev.acompanamientos || []), acompanamientoInput.trim()] }));
-                            setAcompanamientoInput('');
-                          }
-                        }}
-                      >
-                        Agregar
-                      </button>
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      {(formData.acompanamientos || []).map((acomp, idx) => (
-                        <span key={idx} className="tag">
-                          {acomp}
-                          <button
-                            className="tag-close"
-                            onClick={() => setFormData(prev => ({ ...prev, acompanamientos: (prev.acompanamientos || []).filter(a => a !== acomp) }))}
-                            aria-label={`Eliminar ${acomp}`}
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                      {(formData.acompanamientos || []).length === 0 && (
-                        <span style={{ color: '#6b7280' }}>Sin acompañamientos aún</span>
-                      )}
-                    </div>
-                  </div>
+                  {/* Sección de acompañamientos removida: se gestiona en “⚙️ Acompañamientos” */}
 
                   {/* Bebida */}
                   <div style={{ gridColumn: '1 / -1' }}>
