@@ -371,456 +371,52 @@ export default function MeseroPage() {
               <div
                 key={p._id}
                 style={{
-                  background: 'linear-gradient(145deg, #f8fafc, #e2e8f0)',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: isMobile ? '12px' : '16px',
-                  padding: isMobile ? '1rem' : '1.5rem',
-                  transition: 'all 0.2s'
+                  background: '#ffffff',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: isMobile ? '12px' : '14px',
+                  padding: isMobile ? '1rem' : '1.25rem',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
                 }}
               >
                 <div style={{
                   display: 'flex',
                   justifyContent: 'space-between',
-                  alignItems: isMobile ? 'flex-start' : 'center',
-                  marginBottom: '1rem',
-                  flexDirection: isMobile ? 'column' : 'row',
-                  gap: isMobile ? '0.75rem' : '0'
+                  alignItems: 'center',
+                  marginBottom: '0.75rem',
+                  gap: '0.75rem'
                 }}>
                   <div style={{ flex: 1 }}>
-                    <h4 style={{
-                      fontSize: isMobile ? '1.125rem' : '1.25rem',
-                      fontWeight: '700',
-                      color: '#1f2937',
-                      margin: 0,
-                      marginBottom: '0.25rem'
-                    }}>
-                      Pedido #{p._id.slice(-6)}
-                    </h4>
-                    <p style={{
-                      color: '#6b7280',
-                      margin: 0,
-                      fontSize: isMobile ? '0.75rem' : '0.875rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      flexWrap: 'wrap'
-                    }}>
-                      <span>
-                        {p.mesa ? `Mesa ${p.mesa}` : p.customerName}
-                        {p.customerLocation && ` • ${p.customerLocation}`}
-                      </span>
-                      <span style={{ color: '#9ca3af' }}>•</span>
-                      <span style={{ 
-                        fontSize: isMobile ? '0.6875rem' : '0.75rem',
-                        color: '#9ca3af'
-                      }}>
-                        {(() => {
-                          const now = new Date();
-                          const pedidoTime = new Date(p.timestamp);
-                          const diffMinutes = Math.floor((now.getTime() - pedidoTime.getTime()) / (1000 * 60));
-                          
-                          if (diffMinutes < 1) return 'Hace menos de 1 min';
-                          if (diffMinutes < 60) return `Hace ${diffMinutes} min`;
-                          
-                          const diffHours = Math.floor(diffMinutes / 60);
-                          const remainingMinutes = diffMinutes % 60;
-                          
-                          if (diffHours < 24) {
-                            return remainingMinutes > 0 
-                              ? `Hace ${diffHours}h ${remainingMinutes}m`
-                              : `Hace ${diffHours}h`;
-                          }
-                          
-                          return pedidoTime.toLocaleDateString();
-                        })()}
-                      </span>
-                    </p>
-                  </div>
-                  
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: isMobile ? '0.5rem' : '1rem',
-                    flexDirection: isMobile ? 'column' : 'row',
-                    alignSelf: isMobile ? 'stretch' : 'auto'
-                  }}>
-                    {(() => {
-                      const estadoStyle = getEstadoStyle(p.estado, (p as any).estadoCocina);
-                      const estadoText = getEstadoText(p.estado, (p as any).estadoCocina);
-                      
-                      return (
-                        <span style={{
-                          padding: isMobile ? '0.375rem 0.75rem' : '0.5rem 1rem',
-                          borderRadius: '20px',
-                          fontSize: isMobile ? '0.75rem' : '0.875rem',
-                          fontWeight: '600',
-                          background: estadoStyle.background,
-                          color: estadoStyle.color,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          border: `1px solid ${estadoStyle.color}20`,
-                          width: isMobile ? '100%' : 'auto',
-                          justifyContent: isMobile ? 'center' : 'flex-start'
-                        }}>
-                          <span>{estadoStyle.icon}</span>
-                          {estadoText}
-                        </span>
-                      );
-                    })()}
-                    
-                    <div style={{
-                      fontSize: isMobile ? '1.25rem' : '1.5rem',
-                      fontWeight: '700',
-                      color: '#059669',
-                      textAlign: isMobile ? 'center' : 'left',
-                      width: isMobile ? '100%' : 'auto'
-                    }}>
-                      ${p.total.toLocaleString()}
+                    <div style={{ fontWeight: 700, color: '#1f2937' }}>
+                      {p.identificationType === 'mesa' ? `Mesa ${p.mesa}` : (p.customerName || 'Cliente')}
                     </div>
+                    <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                      {p.customerLocation || 'Sin ubicación'}
+                    </div>
+                  </div>
+                  <div style={{ fontWeight: 700, color: '#059669', fontSize: isMobile ? '1.125rem' : '1.25rem' }}>
+                    ${p.total.toLocaleString()}
                   </div>
                 </div>
-                
-                <div style={{
-                  background: 'white',
-                  borderRadius: isMobile ? '8px' : '12px',
-                  padding: isMobile ? '0.75rem' : '1rem',
-                  marginBottom: '1rem'
-                }}>
-                  <h5 style={{
-                    fontSize: isMobile ? '0.75rem' : '0.875rem',
-                    fontWeight: '600',
-                    color: '#374151',
-                    marginBottom: '0.75rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                  }}>
-                    🍽️ Artículos del Pedido:
-                  </h5>
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.5rem'
-                  }}>
-                    {p.items.map((item, index) => (
-                      <div key={index} style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: isMobile ? 'flex-start' : 'center',
-                        padding: isMobile ? '0.375rem' : '0.5rem',
-                        background: '#f9fafb',
-                        borderRadius: isMobile ? '6px' : '8px',
-                        border: '1px solid #e5e7eb',
-                        flexDirection: isMobile ? 'column' : 'row',
-                        gap: isMobile ? '0.5rem' : '0'
-                      }}>
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: isMobile ? '0.5rem' : '0.75rem',
-                          width: isMobile ? '100%' : 'auto'
-                        }}>
-                          <span style={{
-                            background: '#3b82f6',
-                            color: 'white',
-                            borderRadius: '50%',
-                            width: isMobile ? '20px' : '24px',
-                            height: isMobile ? '20px' : '24px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: isMobile ? '0.6875rem' : '0.75rem',
-                            fontWeight: '600'
-                          }}>
-                            {item.quantity}
-                          </span>
-                          <span style={{
-                            color: '#374151',
-                            fontWeight: '500',
-                            fontSize: isMobile ? '0.75rem' : '0.875rem'
-                          }}>
-                            {item.name}
-                          </span>
-                        </div>
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: isMobile ? '0.375rem' : '0.5rem',
-                          width: isMobile ? '100%' : 'auto',
-                          justifyContent: isMobile ? 'space-between' : 'flex-end'
-                        }}>
-                          <span style={{
-                            color: '#6b7280',
-                            fontSize: isMobile ? '0.6875rem' : '0.75rem'
-                          }}>
-                            ${item.price.toLocaleString()} c/u
-                          </span>
-                          <span style={{
-                            color: '#059669',
-                            fontWeight: '600',
-                            fontSize: isMobile ? '0.75rem' : '0.875rem'
-                          }}>
-                            ${(item.price * item.quantity).toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Subtotal y Total */}
-                  <div style={{
-                    marginTop: '0.75rem',
-                    paddingTop: '0.75rem',
-                    borderTop: '1px solid #e5e7eb'
-                  }}>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}>
-                      <span style={{
-                        color: '#374151',
-                        fontWeight: '600',
-                        fontSize: '1rem'
-                      }}>
-                        Total del Pedido:
-                      </span>
-                      <span style={{
-                        color: '#059669',
-                        fontWeight: '700',
-                        fontSize: '1.25rem'
-                      }}>
-                        ${p.total.toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Información adicional del pedido */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                  gap: '1rem',
-                  marginBottom: '1rem'
-                }}>
-                  {/* Información de identificación */}
-                  <div style={{
-                    background: '#f0f9ff',
-                    border: '1px solid #bae6fd',
-                    borderRadius: '8px',
-                    padding: '0.75rem'
-                  }}>
-                    <div style={{
-                      fontSize: '0.75rem',
-                      fontWeight: '600',
-                      color: '#0369a1',
-                      marginBottom: '0.25rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em'
-                    }}>
-                      📍 Identificación
-                    </div>
-                    <div style={{
-                      color: '#1e40af',
-                      fontWeight: '500',
-                      fontSize: '0.875rem'
-                    }}>
-                      {p.identificationType === 'mesa' 
-                        ? `Mesa ${p.mesa}` 
-                        : `Cliente: ${p.customerName}`
-                      }
-                    </div>
-                    {p.customerLocation && (
-                      <div style={{
-                        color: '#6b7280',
-                        fontSize: '0.75rem',
-                        marginTop: '0.25rem'
-                      }}>
-                        📍 {p.customerLocation}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Estado de pago */}
-                  <div style={{
-                    background: '#fefce8',
-                    border: '1px solid #fde68a',
-                    borderRadius: '8px',
-                    padding: '0.75rem'
-                  }}>
-                    <div style={{
-                      fontSize: '0.75rem',
-                      fontWeight: '600',
-                      color: '#92400e',
-                      marginBottom: '0.25rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em'
-                    }}>
-                      💵 Pago
-                    </div>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#374151', padding: isMobile ? '0.5rem 0' : 0 }}>
-                      <input
-                        type="checkbox"
-                        checked={!!p.pagado}
-                        onChange={(e) => marcarPagoPedido(p._id, e.target.checked)}
-                        style={{ width: isMobile ? '24px' : '18px', height: isMobile ? '24px' : '18px' }}
-                      />
-                      {p.pagado ? 'Pagado' : 'No pagado'}
-                    </label>
-                  </div>
-
-                  {/* Prioridad */}
-                  {(p as any).prioridad && (p as any).prioridad !== 'normal' && (
-                    <div style={{
-                      background: (p as any).prioridad === 'urgente' ? '#fef2f2' :
-                                 (p as any).prioridad === 'alta' ? '#fff7ed' : '#f0fdf4',
-                      border: `1px solid ${(p as any).prioridad === 'urgente' ? '#fecaca' :
-                                          (p as any).prioridad === 'alta' ? '#fed7aa' : '#bbf7d0'}`,
-                      borderRadius: '8px',
-                      padding: '0.75rem'
-                    }}>
-                      <div style={{
-                        fontSize: '0.75rem',
-                        fontWeight: '600',
-                        color: (p as any).prioridad === 'urgente' ? '#dc2626' :
-                               (p as any).prioridad === 'alta' ? '#ea580c' : '#16a34a',
-                        marginBottom: '0.25rem',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em'
-                      }}>
-                        {(p as any).prioridad === 'urgente' ? '🚨 Urgente' :
-                         (p as any).prioridad === 'alta' ? '⚡ Alta Prioridad' : '📈 Prioridad'}
-                      </div>
-                      <div style={{
-                        color: (p as any).prioridad === 'urgente' ? '#dc2626' :
-                               (p as any).prioridad === 'alta' ? '#ea580c' : '#16a34a',
-                        fontWeight: '500',
-                        fontSize: '0.875rem',
-                        textTransform: 'capitalize'
-                      }}>
-                        {(p as any).prioridad}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Tiempos de procesamiento */}
-                  <div style={{
-                    background: '#fefce8',
-                    border: '1px solid #fde047',
-                    borderRadius: '8px',
-                    padding: '0.75rem'
-                  }}>
-                    <div style={{
-                      fontSize: '0.75rem',
-                      fontWeight: '600',
-                      color: '#a16207',
-                      marginBottom: '0.25rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em'
-                    }}>
-                      ⏱️ Tiempo Transcurrido
-                    </div>
-                    <div style={{
-                      color: '#a16207',
-                      fontWeight: '500',
-                      fontSize: '0.875rem'
-                    }}>
-                      {(() => {
-                        const now = new Date();
-                        const pedidoTime = new Date(p.timestamp);
-                        const diffMinutes = Math.floor((now.getTime() - pedidoTime.getTime()) / (1000 * 60));
-                        
-                        if (diffMinutes < 1) return 'Menos de 1 minuto';
-                        if (diffMinutes < 60) return `${diffMinutes} minutos`;
-                        
-                        const diffHours = Math.floor(diffMinutes / 60);
-                        const remainingMinutes = diffMinutes % 60;
-                        
-                        if (diffHours < 24) {
-                          return remainingMinutes > 0 
-                            ? `${diffHours}h ${remainingMinutes}m`
-                            : `${diffHours} horas`;
-                        }
-                        
-                        return pedidoTime.toLocaleDateString();
-                      })()}
-                    </div>
-                    <div style={{
-                      color: '#6b7280',
-                      fontSize: '0.75rem',
-                      marginTop: '0.25rem'
-                    }}>
-                      Creado: {new Date(p.timestamp).toLocaleTimeString('es-ES', {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Notas de cocina */}
-                {(p as any).notas_cocina && (
-                  <div style={{
-                    background: '#f0f4ff',
-                    border: '1px solid #c7d2fe',
-                    borderRadius: '8px',
-                    padding: '0.75rem',
-                    marginBottom: '1rem'
-                  }}>
-                    <div style={{
-                      fontSize: '0.75rem',
-                      fontWeight: '600',
-                      color: '#4338ca',
-                      marginBottom: '0.5rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem'
-                    }}>
-                      👨‍🍳 Notas de Cocina
-                    </div>
-                    <div style={{
-                      color: '#4338ca',
-                      fontSize: '0.875rem',
-                      lineHeight: '1.4'
-                    }}>
-                      {(p as any).notas_cocina}
-                    </div>
-                  </div>
-                )}
 
                 {p.observaciones && (
-                  <div style={{
-                    background: '#fef7cd',
-                    border: '1px solid #fde68a',
-                    borderRadius: '8px',
-                    padding: '0.75rem',
-                    marginBottom: '1rem'
-                  }}>
-                    <div style={{
-                      fontSize: '0.75rem',
-                      fontWeight: '600',
-                      color: '#92400e',
-                      marginBottom: '0.5rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem'
-                    }}>
-                      📝 Observaciones del Cliente
-                    </div>
-                    <div style={{
-                      color: '#92400e',
-                      fontSize: '0.875rem',
-                      lineHeight: '1.4'
-                    }}>
-                      {p.observaciones}
-                    </div>
+                  <div style={{ marginBottom: '0.75rem', color: '#374151', fontSize: '0.95rem' }}>
+                    <strong>Observaciones:</strong> {p.observaciones}
                   </div>
                 )}
+
+                <div style={{ marginBottom: '0.75rem', color: '#374151', fontSize: '0.95rem' }}>
+                  <strong>Plato(s):</strong> {p.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}
+                </div>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#374151' }}>
+                  <input
+                    type="checkbox"
+                    checked={!!p.pagado}
+                    onChange={(e) => marcarPagoPedido(p._id, e.target.checked)}
+                    style={{ width: isMobile ? '22px' : '18px', height: isMobile ? '22px' : '18px' }}
+                  />
+                  {p.pagado ? 'Pagado' : 'No pagado'}
+                </label>
               </div>
             ))}
             
