@@ -8,6 +8,7 @@ interface PedidoCocinaCardProps {
   onCambiarPrioridad: (pedidoId: string, prioridad: 'baja' | 'normal' | 'alta' | 'urgente') => void;
   onAñadirNotas: (pedidoId: string, notas: string) => void;
   onVerDetalle?: (pedido: PedidoCocina) => void;
+  onCancelarPedido?: (pedidoId: string) => void;
 }
 
 const PedidoCocinaCard: React.FC<PedidoCocinaCardProps> = ({
@@ -16,7 +17,8 @@ const PedidoCocinaCard: React.FC<PedidoCocinaCardProps> = ({
   onMarcarListo,
   onCambiarPrioridad,
   onAñadirNotas,
-  onVerDetalle
+  onVerDetalle,
+  onCancelarPedido
 }) => {
   // Validación temprana para evitar errores
   if (!pedido || typeof pedido !== 'object') {
@@ -86,6 +88,7 @@ const PedidoCocinaCard: React.FC<PedidoCocinaCardProps> = ({
   // Simplificar acciones: permitir iniciar desde 'nuevo' o 'aceptado'
   const puedeIniciarPreparacion = pedido.estadoCocina === 'aceptado' || pedido.estadoCocina === 'nuevo';
   const puedeMarcarListo = pedido.estadoCocina === 'en_preparacion';
+  const puedeCancelar = pedido.estadoCocina !== 'listo_para_entrega';
 
   return (
     <div className="pedido-cocina-card">
@@ -255,6 +258,14 @@ const PedidoCocinaCard: React.FC<PedidoCocinaCardProps> = ({
             onClick={() => onMarcarListo(pedido._id)}
           >
             🍽️ Marcar como Listo
+          </button>
+        )}
+        {onCancelarPedido && puedeCancelar && (
+          <button 
+            className="accion-btn cancelar"
+            onClick={() => onCancelarPedido(pedido._id)}
+          >
+            ❌ Cancelar Pedido
           </button>
         )}
       </div>
@@ -661,6 +672,11 @@ const PedidoCocinaCard: React.FC<PedidoCocinaCardProps> = ({
 
         .listo:hover {
           background: linear-gradient(135deg, #7d3c98, #8e44ad);
+        }
+
+        .cancelar {
+          background: linear-gradient(135deg, #ef4444, #dc2626);
+          color: white;
         }
 
         .detalles {

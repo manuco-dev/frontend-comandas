@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { cocinaService } from '../services/cocinaService';
 import type { PedidoCocina } from '../services/cocinaService';
-import { subscribeToKitchenEvents, unsubscribeFromKitchenEvents, joinKitchenRoom, leaveKitchenRoom } from '../services/socket';
+import { subscribeToKitchenEvents, unsubscribeFromKitchenEvents, joinKitchenRoom, leaveKitchenRoom, getSocket } from '../services/socket';
 import PedidoCocinaCard from '../components/PedidoCocinaCard';
 import { soundNotifications } from '../utils/soundNotifications';
 import PedidoDetalleModal from '../components/PedidoDetalleModal';
@@ -266,6 +266,17 @@ const CocinaPage: React.FC = () => {
     }
   };
 
+  const handleCancelarPedido = async (pedidoId: string) => {
+    try {
+      const confirmar = window.confirm('¿Cancelar y eliminar este pedido? Esta acción no se puede deshacer.');
+      if (!confirmar) return;
+      const socket = getSocket();
+      socket.emit('eliminar-pedido', pedidoId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al cancelar pedido');
+    }
+  };
+
   // Obtener contadores para los botones
   const contadores = {
     nuevos: pedidos.filter(p => p.estadoCocina === 'nuevo').length,
@@ -409,6 +420,7 @@ const CocinaPage: React.FC = () => {
                   onCambiarPrioridad={handleCambiarPrioridad}
                   onAñadirNotas={handleAñadirNotas}
                   onVerDetalle={(p) => setPedidoSeleccionado(p)}
+                  onCancelarPedido={handleCancelarPedido}
                 />
               ))
             )}

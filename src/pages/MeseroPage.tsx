@@ -205,7 +205,8 @@ export default function MeseroPage() {
     <div style={{
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: isMobile ? '0.5rem' : '1rem'
+      padding: isMobile ? '0.5rem' : '1rem',
+      paddingBottom: isMobile ? '4.5rem' : '1rem'
     }}>
       {/* Header con navegación */}
       <div style={{
@@ -218,7 +219,11 @@ export default function MeseroPage() {
         justifyContent: 'space-between',
         alignItems: 'center',
         flexWrap: 'wrap',
-        gap: isMobile ? '0.75rem' : '1rem'
+        gap: isMobile ? '0.75rem' : '1rem',
+        position: isMobile ? 'sticky' : 'static',
+        top: isMobile ? '0.5rem' : undefined,
+        zIndex: isMobile ? 20 : undefined,
+        backdropFilter: isMobile ? 'saturate(180%) blur(4px)' : undefined
       }}>
         <div>
           <h2 style={{
@@ -654,12 +659,12 @@ export default function MeseroPage() {
                     }}>
                       💵 Pago
                     </div>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#374151' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#374151', padding: isMobile ? '0.5rem 0' : 0 }}>
                       <input
                         type="checkbox"
                         checked={!!p.pagado}
                         onChange={(e) => marcarPagoPedido(p._id, e.target.checked)}
-                        style={{ width: '18px', height: '18px' }}
+                        style={{ width: isMobile ? '24px' : '18px', height: isMobile ? '24px' : '18px' }}
                       />
                       {p.pagado ? 'Pagado' : 'No pagado'}
                     </label>
@@ -833,6 +838,74 @@ export default function MeseroPage() {
           </div>
         </div>
       </>)}
+      {isMobile && (
+        <div style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          background: 'rgba(255,255,255,0.92)',
+          backdropFilter: 'saturate(180%) blur(6px)',
+          borderTopLeftRadius: '12px',
+          borderTopRightRadius: '12px',
+          boxShadow: '0 -8px 20px rgba(0,0,0,0.1)',
+          padding: '0.5rem',
+          display: 'flex',
+          gap: '0.5rem',
+          zIndex: 50
+        }}>
+          <button
+            onClick={() => setCurrentView('menu')}
+            style={{
+              flex: 1,
+              padding: '0.75rem 1rem',
+              border: 'none',
+              borderRadius: '12px',
+              fontSize: '0.875rem',
+              fontWeight: 700,
+              background: currentView === 'menu'
+                ? 'linear-gradient(135deg, #667eea, #764ba2)'
+                : '#f8fafc',
+              color: currentView === 'menu' ? 'white' : '#374151'
+            }}
+          >
+            🍽️ Menú
+          </button>
+          <button
+            onClick={() => setCurrentView('orders')}
+            style={{
+              flex: 1,
+              padding: '0.75rem 1rem',
+              border: 'none',
+              borderRadius: '12px',
+              fontSize: '0.875rem',
+              fontWeight: 700,
+              background: currentView === 'orders'
+                ? 'linear-gradient(135deg, #667eea, #764ba2)'
+                : '#f8fafc',
+              color: currentView === 'orders' ? 'white' : '#374151'
+            }}
+          >
+            📋 Pedidos
+          </button>
+          {currentView === 'orders' && (
+            <button
+              onClick={() => setCurrentView('menu')}
+              style={{
+                padding: '0.75rem 1rem',
+                border: 'none',
+                borderRadius: '12px',
+                fontSize: '0.875rem',
+                fontWeight: 700,
+                background: '#10b981',
+                color: 'white'
+              }}
+            >
+              ➕ Nuevo
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
