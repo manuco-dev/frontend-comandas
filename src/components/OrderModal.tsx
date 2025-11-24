@@ -80,7 +80,7 @@ export default function OrderModal({ isOpen, onClose, menuItem, onSubmit }: Orde
     async function fetchGeneralAcomps() {
       try {
         // Forzar uso del proxy de Vite ignorando baseURL global
-        const { data } = await axios.get('/api/menu/acompanamientos-generales', { baseURL: '' });
+    const { data } = await axios.get('/api/menu/acompanamientos-generales');
         const list = Array.isArray(data?.acompanamientos) ? data.acompanamientos : [];
         if (!cancelled) {
           // Siempre reflejar lo que devuelve la API (incluido arreglo vacío)

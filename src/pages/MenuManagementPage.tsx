@@ -176,7 +176,7 @@ export default function MenuManagementPage() {
                   if (!confirmClear) return;
                   try {
                     const payload = { acompanamientos: [] };
-                    const { data } = await axios.put('/api/menu/acompanamientos-generales', payload, { baseURL: '' });
+      const { data } = await axios.put('/api/menu/acompanamientos-generales', payload);
                     const list = Array.isArray(data?.acompanamientos) ? data.acompanamientos : [];
                     setAcompanamientosGenerales(list);
                   } catch (err) {
