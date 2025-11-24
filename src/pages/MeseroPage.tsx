@@ -48,76 +48,7 @@ export default function MeseroPage() {
     }
   }, [currentView, fetchMenu]);
 
-  // Función para obtener el estilo del estado
-  const getEstadoStyle = (estado: string, estadoCocina?: string) => {
-    // Usar estadoCocina si está disponible, sino usar estado general
-    const estadoActual = estadoCocina || estado;
-    
-    switch (estadoActual) {
-      case 'pendiente':
-      case 'nuevo':
-        return {
-          background: '#fef3c7',
-          color: '#92400e',
-          icon: '🆕'
-        };
-      case 'aceptado':
-        return {
-          background: '#dbeafe',
-          color: '#1e40af',
-          icon: '✅'
-        };
-      case 'preparando':
-      case 'en_preparacion':
-        return {
-          background: '#fed7aa',
-          color: '#c2410c',
-          icon: '👨‍🍳'
-        };
-      case 'listo':
-      case 'listo_para_entrega':
-        return {
-          background: '#d1fae5',
-          color: '#065f46',
-          icon: '🍽️'
-        };
-      case 'entregado':
-        return {
-          background: '#e0e7ff',
-          color: '#3730a3',
-          icon: '✨'
-        };
-      default:
-        return {
-          background: '#f3f4f6',
-          color: '#374151',
-          icon: '❓'
-        };
-    }
-  };
-
-  // Función para obtener el texto del estado
-  const getEstadoText = (estado: string, estadoCocina?: string) => {
-    const estadoActual = estadoCocina || estado;
-    
-    switch (estadoActual) {
-      case 'pendiente':
-      case 'nuevo':
-        return 'Nuevo';
-      case 'aceptado':
-        return 'Aceptado';
-      case 'preparando':
-      case 'en_preparacion':
-        return 'Preparando';
-      case 'listo':
-      case 'listo_para_entrega':
-        return 'Listo';
-      case 'entregado':
-        return 'Entregado';
-      default:
-        return estadoActual;
-    }
-  };
+  // Eliminadas funciones de estado no utilizadas tras simplificar tarjetas de pedidos
 
   const handleCreateOrder = async (orderData: {
     customerName: string;
