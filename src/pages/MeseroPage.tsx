@@ -13,6 +13,17 @@ export default function MeseroPage() {
   const [currentView, setCurrentView] = useState<ViewMode>('menu');
   const { isMobile } = useResponsive();
 
+  // Formatear lista de platos para móvil (resumen cuando hay muchos)
+  const formatItems = (items: { name: string; quantity: number }[]) => {
+    if (isMobile && items.length > 2) {
+      const first = `${items[0].quantity}x ${items[0].name}`;
+      const second = `${items[1].quantity}x ${items[1].name}`;
+      const remaining = items.length - 2;
+      return `${first}, ${second} (y ${remaining} más)`;
+    }
+    return items.map(i => `${i.quantity}x ${i.name}`).join(', ');
+  };
+
   // Configurar WebSocket para actualizaciones en tiempo real
   useEffect(() => {
     const socket = getSocket();
@@ -268,10 +279,6 @@ export default function MeseroPage() {
                 <div className="stat-value">${ventasHoyMesero.toLocaleString()}</div>
                 <div className="stat-label">Ventas hoy</div>
               </div>
-              <div className="stat-card">
-                <div className="stat-value">{pedidosActivosMesero}</div>
-                <div className="stat-label">Pedidos activos</div>
-              </div>
             </div>
           </div>
         </div>
@@ -316,38 +323,94 @@ export default function MeseroPage() {
                   marginBottom: '0.75rem',
                   gap: '0.75rem'
                 }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, color: '#1f2937' }}>
-                      {p.identificationType === 'mesa' ? `Mesa ${p.mesa}` : (p.customerName || 'Cliente')}
+                  <div style={{ flex: 1, display: 'grid', gap: '0.375rem' }}>
+                    <div>
+                      <span style={{ fontWeight: 700, color: '#1f2937', fontSize: '0.8rem' }}>Nombre de cliente:</span>
+                      <div style={{ fontWeight: 700, color: '#111827', fontSize: '1rem' }}>
+                        {p.identificationType === 'mesa' ? `Mesa ${p.mesa}` : (p.customerName || 'Sin nombre')}
+                      </div>
                     </div>
-                    <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-                      {p.customerLocation || 'Sin ubicación'}
+                    <div>
+                      <span style={{ fontWeight: 700, color: '#1f2937', fontSize: '0.8rem' }}>Ubicación:</span>
+                      <div style={{ fontWeight: 700, color: '#111827', fontSize: '1rem' }}>
+                        {p.customerLocation || 'Sin ubicación'}
+                      </div>
                     </div>
                   </div>
-                  <div style={{ fontWeight: 700, color: '#059669', fontSize: isMobile ? '1.125rem' : '1.25rem' }}>
-                    ${p.total.toLocaleString()}
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: isMobile ? 'column' : 'row',
+                    alignItems: isMobile ? 'flex-end' : 'center',
+                    gap: '0.5rem'
+                  }}>
+                    <span style={{
+                      padding: '0.375rem 0.625rem',
+                      borderRadius: '9999px',
+                      background: '#ECFDF5',
+                      border: '1px solid #A7F3D0',
+                      color: '#065F46',
+                      fontWeight: 700,
+                      fontSize: isMobile ? '0.95rem' : '1rem'
+                    }}>
+                      ${p.total.toLocaleString()}
+                    </span>
+                    <label style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.6rem',
+                      color: '#374151',
+                      fontSize: '0.95rem',
+                      padding: isMobile ? '6px 10px' : '4px 8px',
+                      borderRadius: 10,
+                      cursor: 'pointer'
+                    }}>
+                      <input
+                        type="checkbox"
+                        aria-label="Marcar pedido como pagado"
+                        checked={!!p.pagado}
+                        onChange={(e) => marcarPagoPedido(p._id, e.target.checked)}
+                        style={{ width: isMobile ? '26px' : '20px', height: isMobile ? '26px' : '20px' }}
+                      />
+                      <span style={{
+                        padding: '0.25rem 0.5rem',
+                        borderRadius: '9999px',
+                        fontWeight: 600,
+                        background: p.pagado ? '#DCFCE7' : '#FEE2E2',
+                        color: p.pagado ? '#065F46' : '#991B1B',
+                        border: `1px solid ${p.pagado ? '#86EFAC' : '#FCA5A5'}`
+                      }}>
+                        {p.pagado ? 'Pagado' : 'No pagado'}
+                      </span>
+                    </label>
                   </div>
                 </div>
-
+                <div style={{ borderTop: '1px solid #e5e7eb', margin: '0.5rem 0 0.75rem' }} />
+                <div style={{
+                  marginBottom: '0.5rem',
+                  color: '#6b7280',
+                  fontSize: isMobile ? '0.85rem' : '0.9rem'
+                }}>
+                  <strong>Solicitado:</strong> {new Date(p.timestamp).toLocaleDateString()} {new Date(p.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </div>
                 {p.observaciones && (
-                  <div style={{ marginBottom: '0.75rem', color: '#374151', fontSize: '0.95rem' }}>
+                  <div style={{
+                    marginBottom: '0.75rem',
+                    color: '#374151',
+                    fontSize: '0.95rem',
+                    overflow: isMobile ? 'hidden' : 'visible',
+                    display: isMobile ? '-webkit-box' : 'block',
+                    WebkitLineClamp: isMobile ? 2 : undefined,
+                    WebkitBoxOrient: isMobile ? 'vertical' as any : undefined
+                  }}>
                     <strong>Observaciones:</strong> {p.observaciones}
                   </div>
                 )}
 
                 <div style={{ marginBottom: '0.75rem', color: '#374151', fontSize: '0.95rem' }}>
-                  <strong>Plato(s):</strong> {p.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}
+                  <strong>Plato(s):</strong> {formatItems(p.items)}
                 </div>
 
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#374151' }}>
-                  <input
-                    type="checkbox"
-                    checked={!!p.pagado}
-                    onChange={(e) => marcarPagoPedido(p._id, e.target.checked)}
-                    style={{ width: isMobile ? '22px' : '18px', height: isMobile ? '22px' : '18px' }}
-                  />
-                  {p.pagado ? 'Pagado' : 'No pagado'}
-                </label>
+                
               </div>
             ))}
             

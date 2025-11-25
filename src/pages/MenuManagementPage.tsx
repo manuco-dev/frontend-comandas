@@ -12,7 +12,7 @@ export default function MenuManagementPage() {
   const [showForm, setShowForm] = useState(false);
   const [formStep, setFormStep] = useState<1 | 2>(1);
   const [acompanamientoGeneralInput, setAcompanamientoGeneralInput] = useState('');
-  const [activeTab, setActiveTab] = useState<'acomps' | 'nuevo' | 'listado' | 'editar'>('acomps');
+  const [activeTab, setActiveTab] = useState<'acomps' | 'nuevo' | 'listado' | 'editar' | 'eliminar'>('acomps');
   const [items, setItems] = useState<MenuItem[]>([]);
   const [itemsLoading, setItemsLoading] = useState(false);
   const [itemsSearch, setItemsSearch] = useState('');
@@ -64,7 +64,7 @@ export default function MenuManagementPage() {
   }
 
   useEffect(() => {
-    if (activeTab === 'listado' || activeTab === 'editar') {
+    if (activeTab === 'listado' || activeTab === 'editar' || activeTab === 'eliminar') {
       loadItems();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -114,14 +114,16 @@ export default function MenuManagementPage() {
             >
               ➕ Nuevo Plato
             </button>
-            <button className="btn" onClick={() => setActiveTab('listado')}>🗂️ Listado y eliminar</button>
+            <button className="btn" onClick={() => setActiveTab('listado')}>Listado de Platos</button>
+            <button className="btn btn-secondary" onClick={() => setActiveTab('eliminar')}>Eliminar Plato</button>
+            
             <button className="btn" onClick={() => setActiveTab('editar')}>✏️ Editar plato</button>
           </div>
         )}
       />
 
       {/* Tabs de proteína para secciones que lo usan */}
-      {(activeTab === 'nuevo' || activeTab === 'listado' || activeTab === 'editar') && (
+      {(activeTab === 'nuevo' || activeTab === 'editar') && (
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
           {PROTEINAS.map(p => (
             <button
@@ -229,7 +231,7 @@ export default function MenuManagementPage() {
         <div className="card">
           <div className="card-header">
             <h3 className="card-title">Listado de platos</h3>
-            <p className="card-subtitle">Busca, filtra por proteína y elimina si es necesario</p>
+            <p className="card-subtitle">Buscar y activar/desactivar disponibilidad con el checkbox</p>
           </div>
           <div className="card-body">
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
@@ -245,7 +247,83 @@ export default function MenuManagementPage() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '0.75rem' }}>
               {items
-                .filter(it => proteina === 'Carnes' || proteina === 'Aves' || proteina === 'Cerdo' || proteina === 'Pescado' ? (it.proteina ? it.proteina === proteina : true) : true)
+                .filter(it => it.nombre.toLowerCase().includes(itemsSearch.toLowerCase()) || (it.descripcion || '').toLowerCase().includes(itemsSearch.toLowerCase()))
+                .slice()
+                .sort((a, b) => {
+                  const da = (a as any)?.createdAt ? new Date((a as any).createdAt).getTime() : (a as any)?.fechaCreacion ? new Date((a as any).fechaCreacion).getTime() : 0;
+                  const db = (b as any)?.createdAt ? new Date((b as any).createdAt).getTime() : (b as any)?.fechaCreacion ? new Date((b as any).fechaCreacion).getTime() : 0;
+                  return db - da; // más reciente primero
+                })
+                .map(it => (
+                  <div key={it._id} className="card" style={{ border: '1px solid #e5e7eb' }}>
+                    <div className="card-body" style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.5rem', alignItems: 'center' }}>
+                      <div>
+                        <div style={{ fontWeight: 700 }}>{it.nombre}</div>
+                        <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>{it.categoria}{it.proteina ? ` · ${it.proteina}` : ''}</div>
+                        <div style={{ color: '#10b981', fontWeight: 700 }}>${it.precio.toLocaleString()}</div>
+                        <div style={{ marginTop: '0.25rem', fontSize: '0.8rem' }}>
+                          <span style={{
+                            padding: '0.2rem 0.5rem',
+                            borderRadius: '9999px',
+                            border: `1px solid ${it.disponible ? '#A7F3D0' : '#FCA5A5'}`,
+                            background: it.disponible ? '#ECFDF5' : '#FEE2E2',
+                            color: it.disponible ? '#065F46' : '#991B1B',
+                            fontWeight: 600
+                          }}>
+                            {it.disponible ? 'Activo' : 'Inactivo'}
+                          </span>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={!!it.disponible}
+                            onChange={async (e) => {
+                              try {
+                                const nuevo = e.target.checked;
+                                await axios.patch(`/api/menu/${it._id}/disponibilidad`, { disponible: nuevo });
+                                setItems(prev => prev.map(x => x._id === it._id ? { ...x, disponible: nuevo } : x));
+                              } catch (e: any) {
+                                alert(e?.response?.data?.error || 'Error actualizando disponibilidad');
+                              }
+                            }}
+                          />
+                          <span>Disponible</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+            {items.length === 0 && !itemsLoading && (
+              <div style={{ color: '#6b7280' }}>No hay platos cargados</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Eliminar platos */}
+      {activeTab === 'eliminar' && (
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">Eliminar platos</h3>
+            <p className="card-subtitle">Buscar y eliminar platos del menú</p>
+          </div>
+          <div className="card-body">
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <input
+                className="input"
+                placeholder="Buscar por nombre o descripción..."
+                value={itemsSearch}
+                onChange={(e) => setItemsSearch(e.target.value)}
+              />
+              <button className="btn btn-secondary" onClick={loadItems} disabled={itemsLoading}>
+                {itemsLoading ? 'Actualizando...' : 'Actualizar'}
+              </button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '0.75rem' }}>
+              {items
                 .filter(it => it.nombre.toLowerCase().includes(itemsSearch.toLowerCase()) || (it.descripcion || '').toLowerCase().includes(itemsSearch.toLowerCase()))
                 .slice()
                 .sort((a, b) => {
@@ -261,17 +339,21 @@ export default function MenuManagementPage() {
                         <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>{it.categoria}{it.proteina ? ` · ${it.proteina}` : ''}</div>
                         <div style={{ color: '#10b981', fontWeight: 700 }}>${it.precio.toLocaleString()}</div>
                       </div>
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button className="btn" onClick={() => { setEditingItem(it); setActiveTab('editar'); setEditForm(it); }}>Editar</button>
-                        <button className="btn btn-secondary" onClick={async () => {
-                          if (!confirm(`¿Eliminar "${it.nombre}"?`)) return;
-                          try {
-                            await axios.delete(`/api/menu/${it._id}`);
-                            setItems(prev => prev.filter(x => x._id !== it._id));
-                          } catch (e: any) {
-                            alert(e?.response?.data?.error || 'Error eliminando plato');
-                          }
-                        }}>Eliminar</button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <button
+                          className="btn btn-secondary"
+                          onClick={async () => {
+                            if (!confirm(`¿Eliminar "${it.nombre}"?`)) return;
+                            try {
+                              await axios.delete(`/api/menu/${it._id}`);
+                              setItems(prev => prev.filter(x => x._id !== it._id));
+                            } catch (e: any) {
+                              alert(e?.response?.data?.error || 'Error eliminando plato');
+                            }
+                          }}
+                        >
+                          Eliminar Plato
+                        </button>
                       </div>
                     </div>
                   </div>

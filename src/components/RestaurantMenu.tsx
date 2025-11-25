@@ -45,6 +45,8 @@ export default function RestaurantMenu({ onCreateOrder }: RestaurantMenuProps) {
 
   const filteredMenu = useMemo(() => {
     let filtered = menu;
+    // Mostrar solo platos disponibles al mesero
+    filtered = filtered.filter(item => item.disponible);
     
     if (selectedProtein !== 'all') {
       filtered = filtered.filter(item => item.proteina === selectedProtein);
