@@ -129,9 +129,7 @@ export default function MeseroPage() {
     return pedidosHoyMesero.reduce((sum, p) => sum + (p.total || 0), 0);
   }, [pedidosHoyMesero]);
 
-  const pedidosActivosMesero = useMemo(() => {
-    return pedidosMesero.filter(p => p.estado !== 'entregado').length;
-  }, [pedidosMesero]);
+  // Removed unused metric to fix TS6133 (declared but never read)
 
   // Si no hay mesero logueado, mostrar login
   if (!meseroActual) {

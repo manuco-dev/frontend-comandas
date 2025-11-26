@@ -259,7 +259,6 @@ export default function MenuManagementPage() {
                     <div className="card-body" style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.5rem', alignItems: 'center' }}>
                       <div>
                         <div style={{ fontWeight: 700 }}>{it.nombre}</div>
-                        <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>{it.categoria}{it.proteina ? ` · ${it.proteina}` : ''}</div>
                         <div style={{ color: '#10b981', fontWeight: 700 }}>${it.precio.toLocaleString()}</div>
                         <div style={{ marginTop: '0.25rem', fontSize: '0.8rem' }}>
                           <span style={{
