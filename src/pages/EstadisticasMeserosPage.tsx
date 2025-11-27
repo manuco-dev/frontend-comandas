@@ -7,7 +7,7 @@ import PageHeader from '../components/PageHeader';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export default function EstadisticasMeserosPage() {
-  const { meseroActual } = useApp();
+  const { meseroActual, marcarPagoPedido } = useApp();
   const [period, setPeriod] = useState<PeriodoEstadistica>('day');
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<EstadisticasMeserosResponse | null>(null);
@@ -36,7 +36,7 @@ export default function EstadisticasMeserosPage() {
     ventasTotal: number;
     unidadesTotal: number;
     items: Array<{ name: string; cantidad: number; ventas: number }>;
-    itemsDetalles?: Array<{ name: string; cantidad: number; ventas: number; cliente: string; ubicacion: string; pagado: boolean; mesero: string }>;
+    itemsDetalles?: Array<{ name: string; cantidad: number; ventas: number; cliente: string; ubicacion: string; pagado: boolean; mesero: string; pedidoId: string }>;
   };
   const [itemsData, setItemsData] = useState<ItemsStats | null>(null);
   type MonthDebugStats = {
@@ -123,6 +123,7 @@ export default function EstadisticasMeserosPage() {
               ubicacion: p?.customerLocation || 'Sin ubicación',
               pagado: !!p?.pagado,
               mesero: (typeof p?.mesero === 'object' && p?.mesero?.nombre) ? p.mesero.nombre : (p?.meseroNombre || 'Sin mesero'),
+              pedidoId: String(p?._id || ''),
             });
           }
         }
@@ -220,6 +221,7 @@ export default function EstadisticasMeserosPage() {
               ubicacion: p?.customerLocation || 'Sin ubicación',
               pagado: !!p?.pagado,
               mesero: (typeof p?.mesero === 'object' && p?.mesero?.nombre) ? p.mesero.nombre : (p?.meseroNombre || 'Sin mesero'),
+              pedidoId: String(p?._id || ''),
             });
           }
         }
@@ -274,6 +276,20 @@ export default function EstadisticasMeserosPage() {
       currency: 'COP',
       minimumFractionDigits: 0,
     }).format(n);
+  }
+
+  async function handleTogglePagado(pedidoId: string) {
+    if (!pedidoId) return;
+    try {
+      await marcarPagoPedido(pedidoId, true);
+      setItemsData(prev => {
+        if (!prev) return prev;
+        const detalles = (prev.itemsDetalles || []).map(d => d.pedidoId === pedidoId ? { ...d, pagado: true } : d);
+        return { ...prev, itemsDetalles: detalles };
+      });
+    } catch (e) {
+      console.error('Error marcando pago:', e);
+    }
   }
 
   function PeriodSelector() {
@@ -445,6 +461,11 @@ export default function EstadisticasMeserosPage() {
     URL.revokeObjectURL(url);
   }
 
+  // Debug mensual: cargar conteos cuando el periodo es mensual y hay mes seleccionado
+  useEffect(() => {
+    fetchMonthDebugCounts();
+  }, [period, selectedMonth]);
+
   return (
     <div className="container">
       <PageHeader
@@ -564,7 +585,14 @@ export default function EstadisticasMeserosPage() {
                       <td>{row.mesero}</td>
                       <td>{row.cliente}</td>
                       <td className="hide-xs">{row.ubicacion}</td>
-                      <td className={row.pagado ? 'text-green-700' : 'text-red-700'}>{row.pagado ? 'Pagado' : 'No pagado'}</td>
+                      <td className={row.pagado ? 'text-green-700' : 'text-red-700'}>
+                        {row.pagado ? 'Pagado' : (
+                          <label className="inline-flex items-center gap-2">
+                            <input type="checkbox" onChange={() => handleTogglePagado(row.pedidoId)} />
+                            <span>No pagado</span>
+                          </label>
+                        )}
+                      </td>
                       <td className="text-right">{row.cantidad}</td>
                       <td className="text-right font-medium">{formatCurrency(row.ventas)}</td>
                     </tr>
@@ -603,6 +631,3 @@ export default function EstadisticasMeserosPage() {
     </div>
   );
 }
-  useEffect(() => {
-    fetchMonthDebugCounts();
-  }, [period, selectedMonth]);
