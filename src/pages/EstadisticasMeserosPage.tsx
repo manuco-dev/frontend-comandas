@@ -8,7 +8,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export default function EstadisticasMeserosPage() {
   const { meseroActual } = useApp();
-  const [periodo, setPeriodo] = useState<PeriodoEstadistica>('day');
+  const [period, setPeriod] = useState<PeriodoEstadistica>('day');
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<EstadisticasMeserosResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -18,6 +18,12 @@ export default function EstadisticasMeserosPage() {
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const dd = String(d.getDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
+  });
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    return `${yyyy}-${mm}`; // YYYY-MM
   });
   const [selectedMeseroId, setSelectedMeseroId] = useState<string>('');
 
@@ -33,6 +39,14 @@ export default function EstadisticasMeserosPage() {
     itemsDetalles?: Array<{ name: string; cantidad: number; ventas: number; cliente: string; ubicacion: string; pagado: boolean; mesero: string }>;
   };
   const [itemsData, setItemsData] = useState<ItemsStats | null>(null);
+  type MonthDebugStats = {
+    start: string;
+    end: string;
+    totalPedidos: number;
+    ventasTotal: number;
+    totalItemsUnidades: number;
+  } | null;
+  const [monthDebug, setMonthDebug] = useState<MonthDebugStats>(null);
 
   const promedioGlobal = useMemo(() => {
     if (!data) return 0;
@@ -45,7 +59,10 @@ export default function EstadisticasMeserosPage() {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await axios.get<EstadisticasMeserosResponse>(`${API_URL}/api/pedidos/estadisticas/meseros`, { params: { period: p } });
+      const params: Record<string, string> = { period: p };
+      if (p === 'day' && selectedDate) params.date = selectedDate;
+      if (p === 'month' && selectedMonth) params.date = selectedMonth; // backend acepta YYYY-MM para mes
+      const { data } = await axios.get<EstadisticasMeserosResponse>(`${API_URL}/api/pedidos/estadisticas/meseros`, { params });
       setData(data);
     } catch (err: any) {
       setError(err?.response?.data?.error || 'Error cargando estadísticas');
@@ -54,20 +71,40 @@ export default function EstadisticasMeserosPage() {
     }
   }
 
+  async function fetchMonthDebugCounts() {
+    try {
+      if (period !== 'month' || !selectedMonth) {
+        setMonthDebug(null);
+        return;
+      }
+      const { data } = await axios.get(`${API_URL}/api/pedidos/debug/mes`, { params: { date: selectedMonth } });
+      setMonthDebug({
+        start: new Date(data.start).toISOString(),
+        end: new Date(data.end).toISOString(),
+        totalPedidos: Number(data.totalPedidos || 0),
+        ventasTotal: Number(data.ventasTotal || 0),
+        totalItemsUnidades: Number(data.totalItemsUnidades || 0),
+      });
+    } catch (e) {
+      setMonthDebug(null);
+    }
+  }
+
   useEffect(() => {
-    fetchData(periodo);
-  }, [periodo]);
+    fetchData(period);
+  }, [period]);
 
   async function fetchItems() {
     try {
-      const params: Record<string, string> = { period: periodo };
-      if (periodo === 'day' && selectedDate) params.date = selectedDate;
+      const params: Record<string, string> = { period };
+      if (period === 'day' && selectedDate) params.date = selectedDate;
+      if (period === 'month' && selectedMonth) params.date = `${selectedMonth}-01`; // items endpoint usa date para día; fallback cubre mes
       if (selectedMeseroId) params.meseroId = selectedMeseroId;
       const { data } = await axios.get<ItemsStats>(`${API_URL}/api/pedidos/estadisticas/meseros/items`, { params });
 
       // Complementar con detalle por pedido para incluir cliente/ubicación/pago
       const detailParams: Record<string, string> = {};
-      if (periodo === 'day' && selectedDate) detailParams.fecha = selectedDate;
+      if (period === 'day' && selectedDate) detailParams.fecha = selectedDate;
       if (selectedMeseroId) detailParams.mesero = selectedMeseroId;
       let itemsDetalles: ItemsStats['itemsDetalles'] = [];
       try {
@@ -111,10 +148,10 @@ export default function EstadisticasMeserosPage() {
   }
 
   function getPeriodDateStrings() {
-    if (periodo === 'day') {
+    if (period === 'day') {
       return selectedDate ? [selectedDate] : [formatDateString(new Date())];
     }
-    if (periodo === 'week') {
+    if (period === 'week') {
       const now = new Date();
       const day = now.getDay(); // 0 domingo, 1 lunes, ...
       const diffToMonday = day === 0 ? -6 : 1 - day;
@@ -192,11 +229,11 @@ export default function EstadisticasMeserosPage() {
 
       let start: Date;
       let end: Date;
-      if (periodo === 'day') {
+      if (period === 'day') {
         start = selectedDate ? new Date(selectedDate) : new Date();
         end = new Date(start);
         end.setDate(end.getDate() + 1);
-      } else if (periodo === 'week') {
+      } else if (period === 'week') {
         const now = new Date();
         const day = now.getDay();
         const diffToMonday = day === 0 ? -6 : 1 - day;
@@ -212,7 +249,7 @@ export default function EstadisticasMeserosPage() {
       }
 
       setItemsData({
-        period: periodo,
+        period,
         start: start.toISOString(),
         end: end.toISOString(),
         meseroId: selectedMeseroId || null,
@@ -229,7 +266,7 @@ export default function EstadisticasMeserosPage() {
 
   useEffect(() => {
     fetchItems();
-  }, [periodo, selectedDate, selectedMeseroId]);
+  }, [period, selectedDate, selectedMeseroId]);
 
   function formatCurrency(n: number) {
     return new Intl.NumberFormat('es-CO', {
@@ -249,9 +286,9 @@ export default function EstadisticasMeserosPage() {
         ] as { key: PeriodoEstadistica; label: string; icon: string }[]).map((opt) => (
           <button
             key={opt.key}
-            onClick={() => setPeriodo(opt.key)}
-            className={`segmented-item ${periodo === opt.key ? 'active' : ''}`}
-            aria-pressed={periodo === opt.key}
+            onClick={() => setPeriod(opt.key)}
+            className={`segmented-item ${period === opt.key ? 'active' : ''}`}
+            aria-pressed={period === opt.key}
             role="tab"
             title={opt.label}
           >
@@ -261,6 +298,151 @@ export default function EstadisticasMeserosPage() {
         ))}
       </div>
     );
+  }
+
+  function periodLabel(p: PeriodoEstadistica): string {
+    if (p === 'day') return 'día';
+    if (p === 'week') return 'semana';
+    return 'mes';
+  }
+
+  function formatIsoDateShort(iso: string): string {
+    try {
+      const d = new Date(iso);
+      const y = d.getFullYear();
+      const m = `${d.getMonth() + 1}`.padStart(2, '0');
+      const day = `${d.getDate()}`.padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    } catch {
+      return iso;
+    }
+  }
+
+  // Genera fechas diarias YYYY-MM-DD entre [start, end) usando horario local
+  function getDateStringsBetween(startIso: string, endIso: string): string[] {
+    const start = new Date(startIso);
+    const end = new Date(endIso);
+    // Normalizar a 00:00 local
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    const days: string[] = [];
+    const cur = new Date(start);
+    while (cur < end) {
+      const y = cur.getFullYear();
+      const m = `${cur.getMonth() + 1}`.padStart(2, '0');
+      const d = `${cur.getDate()}`.padStart(2, '0');
+      days.push(`${y}-${m}-${d}`);
+      cur.setDate(cur.getDate() + 1);
+    }
+    return days;
+  }
+
+  async function exportVentasMeserosCSV() {
+    if (!data) return;
+    const headers = ['Periodo', 'Inicio', 'Fin', 'Mesero', 'Usuario', 'Pedidos', 'Ventas', 'Promedio'];
+    const startStr = formatIsoDateShort(data.start);
+    const endStr = formatIsoDateShort(data.end);
+    const periodStr = periodLabel(data.period);
+
+    let rows: string[][] = [];
+
+    // Fallback robusto para mensual: consolidar todo el mes desde /api/pedidos por día
+    if (data.period === 'month') {
+      try {
+        // Usar el rango exacto del backend (data.start, data.end)
+        const fechas = getDateStringsBetween(data.start, data.end);
+        const porMesero = new Map<string, { nombre: string; usuario: string; pedidos: number; ventas: number }>();
+        for (const fecha of fechas) {
+          const params: Record<string, string> = { fecha };
+          if (selectedMeseroId) params.mesero = selectedMeseroId;
+          const resp = await axios.get<any[]>(`${API_URL}/api/pedidos`, { params });
+          const pedidosDia = Array.isArray(resp.data) ? resp.data : [];
+          for (const p of pedidosDia) {
+            const key = (typeof p?.mesero === 'object' && p?.mesero?._id) ? String(p.mesero._id) : String(p?.mesero || 'sin_mesero');
+            const nombre = (typeof p?.mesero === 'object' && p?.mesero?.nombre) ? p.mesero.nombre : (p?.meseroNombre || 'Sin mesero');
+            const usuario = (typeof p?.mesero === 'object' && p?.mesero?.usuario) ? p.mesero.usuario : (p?.meseroUsuario || '');
+            const prev = porMesero.get(key) || { nombre, usuario, pedidos: 0, ventas: 0 };
+            prev.pedidos += 1;
+            prev.ventas += Number(p?.total || 0);
+            porMesero.set(key, prev);
+          }
+        }
+        rows = Array.from(porMesero.entries())
+          .map(([_, e]) => [
+            periodStr,
+            startStr,
+            endStr,
+            e.nombre,
+            e.usuario,
+            String(e.pedidos),
+            String(e.ventas),
+            String(e.pedidos > 0 ? (e.ventas / e.pedidos) : 0),
+          ]);
+      } catch (e) {
+        // Si el fallback falla, usar los datos agregados disponibles
+        rows = data.meseros
+          .filter(m => !selectedMeseroId || m.meseroId === selectedMeseroId)
+          .map(m => [
+            periodStr,
+            startStr,
+            endStr,
+            m.nombre,
+            m.usuario,
+            String(m.pedidos ?? 0),
+            String(m.ventas ?? 0),
+            String(m.promedio ?? 0),
+          ]);
+      }
+    } else {
+      // day|week: usar datos agregados del endpoint
+      rows = data.meseros
+        .filter(m => !selectedMeseroId || m.meseroId === selectedMeseroId)
+        .map(m => [
+          periodStr,
+          startStr,
+          endStr,
+          m.nombre,
+          m.usuario,
+          String(m.pedidos ?? 0),
+          String(m.ventas ?? 0),
+          String(m.promedio ?? 0),
+        ]);
+    }
+
+    const csv = [headers, ...rows]
+      .map(r => r.map(field => {
+        const v = String(field ?? '');
+        // Escapar comas y comillas
+        if (v.includes(',') || v.includes('"') || v.includes('\n')) {
+          return '"' + v.replace(/"/g, '""') + '"';
+        }
+        return v;
+      }).join(','))
+      .join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+
+    let filename = `ventas_meseros_${data.period}`;
+    if (data.period === 'day') {
+      const day = data.period === 'day' && selectedDate ? selectedDate : startStr;
+      filename += `_${day}`;
+    } else if (data.period === 'week') {
+      filename += `_${startStr}_a_${endStr}`;
+    } else {
+      const month = startStr.slice(0, 7);
+      filename += `_${month}`;
+    }
+    filename += '.csv';
+
+    a.href = url;
+    a.download = filename;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -273,15 +455,26 @@ export default function EstadisticasMeserosPage() {
 
       <PeriodSelector />
 
-      {/* Filtros por día y mesero */}
+      {/* Filtros por fecha/mes y mesero */}
       <div className="flex gap-3 mb-4 items-center">
-        {periodo === 'day' && (
+        {period === 'day' && (
           <label className="flex items-center gap-2 text-sm text-gray-700">
             <span>Fecha:</span>
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
+              className="px-3 py-2 border border-blue-200 rounded-lg"
+            />
+          </label>
+        )}
+        {period === 'month' && (
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <span>Mes:</span>
+            <input
+              type="month"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
               className="px-3 py-2 border border-blue-200 rounded-lg"
             />
           </label>
@@ -311,7 +504,20 @@ export default function EstadisticasMeserosPage() {
             <div className="card-header">
               <div className="card-title">Panel de ventas</div>
               <div className="card-subtitle">
-                Periodo: {periodo === 'day' ? 'Hoy' : periodo === 'week' ? 'Semana actual' : 'Mes actual'}
+                Periodo: {data.period === 'day' ? 'Hoy' : data.period === 'week' ? 'Semana actual' : 'Mes actual'}
+                {data.period === 'month' && monthDebug ? ` · Debug: pedidos=${monthDebug.totalPedidos} · items=${monthDebug.totalItemsUnidades}` : ''}
+              </div>
+              <div className="mt-2">
+                <button
+                  type="button"
+                  className="btn btn-sm btn-primary"
+                  onClick={exportVentasMeserosCSV}
+                  aria-label="Descargar CSV de ventas por mesero"
+                  disabled={loading || !data || (data?.meseros?.length ?? 0) === 0}
+                  title={loading ? 'Cargando datos…' : ((data?.meseros?.length ?? 0) === 0 ? 'No hay datos para exportar' : 'Descargar CSV de ventas por mesero')}
+                >
+                  Descargar CSV
+                </button>
               </div>
             </div>
             <div className="stats-grid">
@@ -336,7 +542,7 @@ export default function EstadisticasMeserosPage() {
           <div className="card">
             <div className="card-header">
               <div className="card-title">Items vendidos</div>
-              <div className="card-subtitle">{periodo === 'day' && selectedDate ? `Fecha: ${selectedDate}` : (periodo === 'week' ? 'Semana actual' : 'Mes actual')}{selectedMeseroId ? ' · Filtrado por mesero' : ''}</div>
+              <div className="card-subtitle">{period === 'day' && selectedDate ? `Fecha: ${selectedDate}` : (period === 'week' ? 'Semana actual' : 'Mes actual')}{selectedMeseroId ? ' · Filtrado por mesero' : ''}</div>
             </div>
             <div className="overflow-x-auto">
               <table className="table table--wide">
@@ -397,3 +603,6 @@ export default function EstadisticasMeserosPage() {
     </div>
   );
 }
+  useEffect(() => {
+    fetchMonthDebugCounts();
+  }, [period, selectedMonth]);
