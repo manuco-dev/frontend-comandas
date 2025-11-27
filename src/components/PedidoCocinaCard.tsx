@@ -95,18 +95,12 @@ const PedidoCocinaCard: React.FC<PedidoCocinaCardProps> = ({
       {/* Header de la tarjeta */}
       <div className="card-header">
         <div className="pedido-info">
-          <div className="pedido-numero">
-            Pedido #{pedido._id.slice(-6).toUpperCase()}
-          </div>
           <div className="cliente-info">
             {pedido.clienteInfo}
             {pedido.customerLocation && (
               <span className="ubicacion"> - {pedido.customerLocation}</span>
             )}
           </div>
-        </div>
-        <div className="tiempo-transcurrido">
-          ⏱️ {formatearTiempo(pedido.tiempoTranscurrido)}
         </div>
       </div>
 
@@ -216,21 +210,7 @@ const PedidoCocinaCard: React.FC<PedidoCocinaCardProps> = ({
         </span>
       </div>
 
-      {/* Tiempos de etapas */}
-      {pedido.tiemposEtapas && Object.keys(pedido.tiemposEtapas).length > 0 && (
-        <div className="tiempos-etapas">
-          <h4>⏰ Tiempos:</h4>
-          {pedido.tiemposEtapas.tiempoHastaAceptacion !== undefined && (
-            <span>Aceptación: {formatearTiempo(pedido.tiemposEtapas.tiempoHastaAceptacion)}</span>
-          )}
-          {pedido.tiemposEtapas.tiempoPreparacion !== undefined && (
-            <span>Preparación: {formatearTiempo(pedido.tiemposEtapas.tiempoPreparacion)}</span>
-          )}
-          {pedido.tiemposEtapas.tiempoFinalizacion !== undefined && (
-            <span>Finalización: {formatearTiempo(pedido.tiemposEtapas.tiempoFinalizacion)}</span>
-          )}
-        </div>
-      )}
+      {/* Oculto: tiempos de etapas y transcurrido, según requerimiento */}
 
       {/* Acciones */}
       <div className="acciones">
