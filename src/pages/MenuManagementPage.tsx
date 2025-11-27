@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import type { MenuItem } from '../types';
 import PageHeader from '../components/PageHeader';
+import { useResponsive } from '../hooks/useResponsive';
 
 const PROTEINAS = ['Carnes', 'Aves', 'Cerdo', 'Pescado'] as const;
 
 type Proteina = typeof PROTEINAS[number];
 
 export default function MenuManagementPage() {
+  const { isMobile } = useResponsive();
   const [proteina, setProteina] = useState<Proteina>('Aves');
   const [showForm, setShowForm] = useState(false);
   const [formStep, setFormStep] = useState<1 | 2>(1);
@@ -101,8 +103,8 @@ export default function MenuManagementPage() {
         title="Gestión de Menú"
         subtitle="Organiza los platos por tipo de proteína y presentación"
         right={(
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button className="btn" onClick={() => setActiveTab('acomps')}>⚙️ Acompañamientos</button>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', width: isMobile ? '100%' : 'auto', justifyContent: isMobile ? 'center' : 'flex-start' }}>
+            <button className="btn" onClick={() => setActiveTab('acomps')} style={{ flex: isMobile ? '1 1 45%' : undefined }}>⚙️ Acompañamientos</button>
             <button
               className="btn"
               onClick={() => {
@@ -111,13 +113,14 @@ export default function MenuManagementPage() {
                 setFormStep(1);
                 setFormData({ nombre: '', descripcion: '', precio: 0, categoria: 'Platos Principales', proteina, acompanamientos: [], bebida: '', disponible: true, tiempoPreparacion: 15 });
               }}
+              style={{ flex: isMobile ? '1 1 45%' : undefined }}
             >
               ➕ Nuevo Plato
             </button>
-            <button className="btn" onClick={() => setActiveTab('listado')}>Listado de Platos</button>
-            <button className="btn btn-secondary" onClick={() => setActiveTab('eliminar')}>Eliminar Plato</button>
+            <button className="btn" onClick={() => setActiveTab('listado')} style={{ flex: isMobile ? '1 1 45%' : undefined }}>Listado de Platos</button>
+            <button className="btn btn-secondary" onClick={() => setActiveTab('eliminar')} style={{ flex: isMobile ? '1 1 45%' : undefined }}>Eliminar Plato</button>
             
-            <button className="btn" onClick={() => setActiveTab('editar')}>✏️ Editar plato</button>
+            <button className="btn" onClick={() => setActiveTab('editar')} style={{ flex: isMobile ? '1 1 45%' : undefined }}>✏️ Editar plato</button>
           </div>
         )}
       />
@@ -234,7 +237,7 @@ export default function MenuManagementPage() {
             <p className="card-subtitle">Buscar y activar/desactivar disponibilidad con el checkbox</p>
           </div>
           <div className="card-body">
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', flexDirection: isMobile ? 'column' : 'row' }}>
               <input
                 className="input"
                 placeholder="Buscar por nombre o descripción..."
@@ -245,7 +248,7 @@ export default function MenuManagementPage() {
                 {itemsLoading ? 'Actualizando...' : 'Actualizar'}
               </button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '0.75rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))', gap: '0.75rem' }}>
               {items
                 .filter(it => it.nombre.toLowerCase().includes(itemsSearch.toLowerCase()) || (it.descripcion || '').toLowerCase().includes(itemsSearch.toLowerCase()))
                 .slice()
@@ -287,6 +290,7 @@ export default function MenuManagementPage() {
                                 alert(e?.response?.data?.error || 'Error actualizando disponibilidad');
                               }
                             }}
+                            style={{ width: isMobile ? 22 : 18, height: isMobile ? 22 : 18 }}
                           />
                           <span>Disponible</span>
                         </label>
@@ -310,7 +314,7 @@ export default function MenuManagementPage() {
             <p className="card-subtitle">Buscar y eliminar platos del menú</p>
           </div>
           <div className="card-body">
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', flexDirection: isMobile ? 'column' : 'row' }}>
               <input
                 className="input"
                 placeholder="Buscar por nombre o descripción..."
@@ -321,7 +325,7 @@ export default function MenuManagementPage() {
                 {itemsLoading ? 'Actualizando...' : 'Actualizar'}
               </button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '0.75rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))', gap: '0.75rem' }}>
               {items
                 .filter(it => it.nombre.toLowerCase().includes(itemsSearch.toLowerCase()) || (it.descripcion || '').toLowerCase().includes(itemsSearch.toLowerCase()))
                 .slice()

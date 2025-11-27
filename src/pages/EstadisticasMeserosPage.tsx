@@ -30,17 +30,13 @@ export default function EstadisticasMeserosPage() {
     ventasTotal: number;
     unidadesTotal: number;
     items: Array<{ name: string; cantidad: number; ventas: number }>;
+    itemsDetalles?: Array<{ name: string; cantidad: number; ventas: number; cliente: string; ubicacion: string; pagado: boolean }>;
   };
   const [itemsData, setItemsData] = useState<ItemsStats | null>(null);
 
   const promedioGlobal = useMemo(() => {
     if (!data) return 0;
     return data.totalPedidos > 0 ? data.ventasTotal / data.totalPedidos : 0;
-  }, [data]);
-
-  const topMeseros = useMemo(() => {
-    if (!data) return [] as EstadisticasMeserosResponse['meseros'];
-    return [...data.meseros].sort((a, b) => b.ventas - a.ventas).slice(0, 3);
   }, [data]);
 
   async function fetchData(p: PeriodoEstadistica) {
@@ -66,7 +62,34 @@ export default function EstadisticasMeserosPage() {
       if (periodo === 'day' && selectedDate) params.date = selectedDate;
       if (selectedMeseroId) params.meseroId = selectedMeseroId;
       const { data } = await axios.get<ItemsStats>(`${API_URL}/api/pedidos/estadisticas/meseros/items`, { params });
-      setItemsData(data);
+
+      // Complementar con detalle por pedido para incluir cliente/ubicación/pago
+      const detailParams: Record<string, string> = {};
+      if (periodo === 'day' && selectedDate) detailParams.fecha = selectedDate;
+      if (selectedMeseroId) detailParams.mesero = selectedMeseroId;
+      let itemsDetalles: ItemsStats['itemsDetalles'] = [];
+      try {
+        const pedidosResp = await axios.get<any[]>(`${API_URL}/api/pedidos`, { params: detailParams });
+        const pedidos = Array.isArray(pedidosResp.data) ? pedidosResp.data : [];
+        for (const p of pedidos) {
+          const items = Array.isArray(p?.items) ? p.items : [];
+          for (const it of items) {
+            const qty = Number(it?.quantity ?? 1);
+            const price = Number(it?.price ?? 0);
+            itemsDetalles.push({
+              name: (it?.name ?? it?.nombre ?? 'Item') as string,
+              cantidad: qty,
+              ventas: price * qty,
+              cliente: p?.identificationType === 'mesa' ? `Mesa ${p?.mesa}` : (p?.customerName || 'Sin nombre'),
+              ubicacion: p?.customerLocation || 'Sin ubicación',
+              pagado: !!p?.pagado,
+            });
+          }
+        }
+      } catch (e) {
+        // Si falla, mantenemos solo el agregado
+      }
+      setItemsData({ ...data, itemsDetalles });
     } catch (err: any) {
       // Fallback cuando la API remota no tenga la ruta (404) o falle
       if (err?.response?.status === 404 || err?.code === 'ERR_NETWORK') {
@@ -130,6 +153,7 @@ export default function EstadisticasMeserosPage() {
       let ventasTotal = 0;
       let unidadesTotal = 0;
       let totalPedidos = 0;
+      const itemsDetalles: ItemsStats['itemsDetalles'] = [];
 
       for (const { pedidos } of results) {
         const list = Array.isArray(pedidos) ? pedidos : [];
@@ -146,6 +170,16 @@ export default function EstadisticasMeserosPage() {
             prev.ventas += price * qty;
             itemsMap.set(key, prev);
             unidadesTotal += qty;
+
+            // Construir detalle por pedido
+            itemsDetalles.push({
+              name: key,
+              cantidad: qty,
+              ventas: price * qty,
+              cliente: p?.identificationType === 'mesa' ? `Mesa ${p?.mesa}` : (p?.customerName || 'Sin nombre'),
+              ubicacion: p?.customerLocation || 'Sin ubicación',
+              pagado: !!p?.pagado,
+            });
           }
         }
       }
@@ -182,6 +216,7 @@ export default function EstadisticasMeserosPage() {
         ventasTotal,
         unidadesTotal,
         items,
+        itemsDetalles,
       });
     } catch (e) {
       setItemsData(null);
@@ -291,34 +326,9 @@ export default function EstadisticasMeserosPage() {
             </div>
           </div>
 
-          {/* Top meseros por ventas */}
-          <div className="card">
-            <div className="card-header">
-              <div className="card-title">Top meseros</div>
-              <div className="card-subtitle">Por ventas</div>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {topMeseros.map((m) => (
-                <div key={m.meseroId} className="order-card">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontWeight: 600 }}>{m.nombre}</div>
-                    <span className="badge badge-success">{formatCurrency(m.ventas)}</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '1rem', color: '#6b7280' }}>
-                    <span>Pedidos: {m.pedidos}</span>
-                    <span>Promedio: {formatCurrency(m.promedio)}</span>
-                  </div>
-                </div>
-              ))}
-              {topMeseros.length === 0 && (
-                <div className="order-card">
-                  <div style={{ color: '#6b7280' }}>No hay datos para el periodo seleccionado.</div>
-                </div>
-              )}
-            </div>
-          </div>
+          {/* Sección Top meseros removida por solicitud */}
 
-          {/* Items vendidos por día y mesero (opcional) */}
+          {/* Items vendidos por día y mesero (detalle por pedido) */}
           <div className="card">
             <div className="card-header">
               <div className="card-title">Items vendidos</div>
@@ -329,21 +339,34 @@ export default function EstadisticasMeserosPage() {
                 <thead>
                   <tr>
                     <th className="text-left">Item</th>
+                    <th className="text-left">Cliente</th>
+                    <th className="text-left">Ubicación</th>
+                    <th className="text-left">Pago</th>
                     <th className="text-right">Cantidad</th>
                     <th className="text-right">Ventas</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {itemsData?.items?.map((it) => (
+                  {(itemsData?.itemsDetalles && itemsData.itemsDetalles.length > 0) ? itemsData.itemsDetalles.map((row, idx) => (
+                    <tr key={`${row.name}-${idx}`}>
+                      <td>{row.name}</td>
+                      <td>{row.cliente}</td>
+                      <td>{row.ubicacion}</td>
+                      <td className={row.pagado ? 'text-green-700' : 'text-red-700'}>{row.pagado ? 'Pagado' : 'No pagado'}</td>
+                      <td className="text-right">{row.cantidad}</td>
+                      <td className="text-right font-medium">{formatCurrency(row.ventas)}</td>
+                    </tr>
+                  )) : itemsData?.items?.map((it) => (
                     <tr key={it.name}>
                       <td>{it.name}</td>
+                      <td colSpan={3}></td>
                       <td className="text-right">{it.cantidad}</td>
                       <td className="text-right font-medium">{formatCurrency(it.ventas)}</td>
                     </tr>
                   ))}
-                  {(!itemsData || itemsData.items.length === 0) && (
+                  {(!itemsData || ((itemsData.itemsDetalles && itemsData.itemsDetalles.length === 0) && itemsData.items.length === 0)) && (
                     <tr>
-                      <td className="px-4 py-4 text-center text-gray-500" colSpan={3}>No hay items para el filtro seleccionado.</td>
+                      <td className="px-4 py-4 text-center text-gray-500" colSpan={6}>No hay items para el filtro seleccionado.</td>
                     </tr>
                   )}
                 </tbody>
