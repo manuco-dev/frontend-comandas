@@ -12,12 +12,6 @@ export default function MeseroPage() {
   const { pedidos, meseroActual, crearPedido, fetchMenu, marcarPagoPedido } = useApp();
   const [currentView, setCurrentView] = useState<ViewMode>('menu');
   const { isMobile } = useResponsive();
-  const [selectedDate, setSelectedDate] = useState<string>(() => {
-    const d = new Date();
-    const tzOffsetMin = d.getTimezoneOffset();
-    const local = new Date(d.getTime() - tzOffsetMin * 60000);
-    return local.toISOString().slice(0, 10);
-  });
 
   // Formatear lista de platos para móvil (resumen cuando hay muchos)
   const formatItems = (items: { name: string; quantity: number }[]) => {
@@ -122,15 +116,15 @@ export default function MeseroPage() {
 
   // Métricas tipo dashboard para el mesero
   const pedidosFechaMesero = useMemo(() => {
-    if (!selectedDate) return pedidosMesero;
-    const selected = new Date(selectedDate + 'T00:00:00');
+    const now = new Date();
+    const selected = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     return pedidosMesero.filter(p => {
       const d = new Date(p.timestamp);
       return d.getFullYear() === selected.getFullYear() &&
         d.getMonth() === selected.getMonth() &&
         d.getDate() === selected.getDate();
     });
-  }, [pedidosMesero, selectedDate]);
+  }, [pedidosMesero]);
 
   const ventasFechaMesero = useMemo(() => {
     return pedidosFechaMesero.reduce((sum, p) => sum + (p.total || 0), 0);
@@ -301,7 +295,7 @@ export default function MeseroPage() {
           <div className="card">
             <div className="card-header">
               <div className="card-title">Panel de ventas</div>
-              <div className="card-subtitle">Resumen de la fecha seleccionada</div>
+              <div className="card-subtitle">Resumen de hoy</div>
             </div>
             <div className="stats-grid">
               <div className="stat-card">
@@ -315,25 +309,7 @@ export default function MeseroPage() {
             </div>
           </div>
         </div>
-        <div style={{
-          background: 'white',
-          borderRadius: isMobile ? '12px' : '14px',
-          padding: isMobile ? '1rem' : '1.25rem',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-          margin: '1rem 0'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <label style={{ color: '#374151', fontWeight: 600 }}>Fecha:</label>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="input"
-              style={{ maxWidth: '200px' }}
-            />
-            <div style={{ color: '#6b7280' }}>Mostrando datos del {new Date(selectedDate + 'T00:00:00').toLocaleDateString()}</div>
-          </div>
-        </div>
+        
         <div style={{
           background: 'white',
           borderRadius: isMobile ? '15px' : '20px',
@@ -350,7 +326,7 @@ export default function MeseroPage() {
             alignItems: 'center',
             gap: '0.5rem'
           }}>
-            📋 Pedidos de la fecha
+            📋 Pedidos de hoy
           </h3>
           
           <div style={{
@@ -473,8 +449,8 @@ export default function MeseroPage() {
                 color: '#6b7280'
               }}>
                 <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📋</div>
-                <h4 style={{ marginBottom: '0.5rem' }}>No tienes pedidos en la fecha seleccionada</h4>
-                <p>Los pedidos de esa fecha aparecerán aquí</p>
+                <h4 style={{ marginBottom: '0.5rem' }}>No tienes pedidos hoy</h4>
+                <p>Los pedidos de hoy aparecerán aquí</p>
               </div>
             )}
           </div>
@@ -496,7 +472,7 @@ export default function MeseroPage() {
             alignItems: 'center',
             gap: '0.5rem'
           }}>
-            🧾 Items vendidos en la fecha
+            🧾 Items vendidos hoy
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.5fr 1fr 1fr 0.8fr 0.7fr 1fr', gap: '0.75rem', alignItems: 'center' }}>
             <div style={{ fontWeight: 700 }}>Item</div>
@@ -519,7 +495,7 @@ export default function MeseroPage() {
             ))}
           </div>
           {itemsVendidosDetalleFecha.length === 0 && (
-            <div style={{ color: '#6b7280' }}>No hay items vendidos en la fecha seleccionada</div>
+            <div style={{ color: '#6b7280' }}>No hay items vendidos hoy</div>
           )}
         </div>
       </>)}

@@ -543,3 +543,96 @@ label {
 .app-theme .table tbody tr:hover td {
   background: #f8fafc;
 }
+
+/* Responsive helpers (global) */
+.overflow-x-auto {
+  overflow-x: auto;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.table thead th {
+  background: #f8fafc;
+  color: #334155;
+  font-weight: 600;
+  padding: 12px 14px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table tbody td {
+  padding: 12px 14px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.table tbody tr:nth-child(even) td {
+  background: #fcfdff;
+}
+
+.table--wide {
+  min-width: 700px; /* fuerza scroll horizontal en móviles cuando hay muchas columnas */
+}
+
+/* En pantallas muy pequeñas, oculta columnas menos críticas */
+@media (max-width: 480px) {
+  .hide-xs { display: none; }
+}
+
+/* Visualizaciones ligeras (tipo dashboard) */
+.distribution-bar {
+  display: flex;
+  height: 14px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f1f5f9;
+}
+
+.distribution-segment {
+  height: 100%;
+}
+
+.legend-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+}
+
+.meter {
+  height: 8px;
+  background: #eef2ff;
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.meter > span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+}

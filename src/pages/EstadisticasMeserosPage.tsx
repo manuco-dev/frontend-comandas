@@ -30,7 +30,7 @@ export default function EstadisticasMeserosPage() {
     ventasTotal: number;
     unidadesTotal: number;
     items: Array<{ name: string; cantidad: number; ventas: number }>;
-    itemsDetalles?: Array<{ name: string; cantidad: number; ventas: number; cliente: string; ubicacion: string; pagado: boolean }>;
+    itemsDetalles?: Array<{ name: string; cantidad: number; ventas: number; cliente: string; ubicacion: string; pagado: boolean; mesero: string }>;
   };
   const [itemsData, setItemsData] = useState<ItemsStats | null>(null);
 
@@ -38,6 +38,8 @@ export default function EstadisticasMeserosPage() {
     if (!data) return 0;
     return data.totalPedidos > 0 ? data.ventasTotal / data.totalPedidos : 0;
   }, [data]);
+
+  // Se removió la distribución porcentual por mesero
 
   async function fetchData(p: PeriodoEstadistica) {
     setLoading(true);
@@ -83,6 +85,7 @@ export default function EstadisticasMeserosPage() {
               cliente: p?.identificationType === 'mesa' ? `Mesa ${p?.mesa}` : (p?.customerName || 'Sin nombre'),
               ubicacion: p?.customerLocation || 'Sin ubicación',
               pagado: !!p?.pagado,
+              mesero: (typeof p?.mesero === 'object' && p?.mesero?.nombre) ? p.mesero.nombre : (p?.meseroNombre || 'Sin mesero'),
             });
           }
         }
@@ -179,6 +182,7 @@ export default function EstadisticasMeserosPage() {
               cliente: p?.identificationType === 'mesa' ? `Mesa ${p?.mesa}` : (p?.customerName || 'Sin nombre'),
               ubicacion: p?.customerLocation || 'Sin ubicación',
               pagado: !!p?.pagado,
+              mesero: (typeof p?.mesero === 'object' && p?.mesero?.nombre) ? p.mesero.nombre : (p?.meseroNombre || 'Sin mesero'),
             });
           }
         }
@@ -335,12 +339,13 @@ export default function EstadisticasMeserosPage() {
               <div className="card-subtitle">{periodo === 'day' && selectedDate ? `Fecha: ${selectedDate}` : (periodo === 'week' ? 'Semana actual' : 'Mes actual')}{selectedMeseroId ? ' · Filtrado por mesero' : ''}</div>
             </div>
             <div className="overflow-x-auto">
-              <table className="table">
+              <table className="table table--wide">
                 <thead>
                   <tr>
                     <th className="text-left">Item</th>
+                    <th className="text-left">Mesero</th>
                     <th className="text-left">Cliente</th>
-                    <th className="text-left">Ubicación</th>
+                    <th className="text-left hide-xs">Ubicación</th>
                     <th className="text-left">Pago</th>
                     <th className="text-right">Cantidad</th>
                     <th className="text-right">Ventas</th>
@@ -350,8 +355,9 @@ export default function EstadisticasMeserosPage() {
                   {(itemsData?.itemsDetalles && itemsData.itemsDetalles.length > 0) ? itemsData.itemsDetalles.map((row, idx) => (
                     <tr key={`${row.name}-${idx}`}>
                       <td>{row.name}</td>
+                      <td>{row.mesero}</td>
                       <td>{row.cliente}</td>
-                      <td>{row.ubicacion}</td>
+                      <td className="hide-xs">{row.ubicacion}</td>
                       <td className={row.pagado ? 'text-green-700' : 'text-red-700'}>{row.pagado ? 'Pagado' : 'No pagado'}</td>
                       <td className="text-right">{row.cantidad}</td>
                       <td className="text-right font-medium">{formatCurrency(row.ventas)}</td>
@@ -359,55 +365,33 @@ export default function EstadisticasMeserosPage() {
                   )) : itemsData?.items?.map((it) => (
                     <tr key={it.name}>
                       <td>{it.name}</td>
-                      <td colSpan={3}></td>
+                      <td colSpan={4}></td>
                       <td className="text-right">{it.cantidad}</td>
                       <td className="text-right font-medium">{formatCurrency(it.ventas)}</td>
                     </tr>
                   ))}
                   {(!itemsData || ((itemsData.itemsDetalles && itemsData.itemsDetalles.length === 0) && itemsData.items.length === 0)) && (
                     <tr>
-                      <td className="px-4 py-4 text-center text-gray-500" colSpan={6}>No hay items para el filtro seleccionado.</td>
+                      <td className="px-4 py-4 text-center text-gray-500" colSpan={7}>No hay items para el filtro seleccionado.</td>
                     </tr>
                   )}
                 </tbody>
+                {itemsData && (itemsData.itemsDetalles?.length || itemsData.items.length) ? (
+                  <tfoot>
+                    <tr>
+                      <td colSpan={5} className="text-right font-semibold">Totales</td>
+                      <td className="text-right font-semibold">{itemsData.unidadesTotal}</td>
+                      <td className="text-right font-semibold">{formatCurrency(itemsData.ventasTotal)}</td>
+                    </tr>
+                  </tfoot>
+                ) : null}
               </table>
             </div>
           </div>
 
-          {/* Detalle por mesero en tabla */}
-          <div className="card">
-            <div className="card-header">
-              <div className="card-title">Detalle por mesero</div>
-              <div className="card-subtitle">Pedidos y ventas por periodo</div>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th className="text-left">Mesero</th>
-                    <th className="text-right">Pedidos</th>
-                    <th className="text-right">Ventas</th>
-                    <th className="text-right">Promedio</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.meseros.map((m) => (
-                    <tr key={m.meseroId}>
-                      <td>{m.nombre}</td>
-                      <td className="text-right">{m.pedidos}</td>
-                      <td className="text-right font-medium">{formatCurrency(m.ventas)}</td>
-                      <td className="text-right">{formatCurrency(m.promedio)}</td>
-                    </tr>
-                  ))}
-                  {data.meseros.length === 0 && (
-                    <tr>
-                      <td className="px-4 py-4 text-center text-gray-500" colSpan={4}>No hay datos para el periodo seleccionado.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          {/* Se removió la tabla detallada por mesero por redundancia */}
+
+          {/* Se removió la distribución de ventas por mesero por redundancia con tablas */}
         </>
       )}
     </div>
