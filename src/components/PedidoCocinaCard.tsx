@@ -34,14 +34,6 @@ const PedidoCocinaCard: React.FC<PedidoCocinaCardProps> = ({
   const [nuevasNotas, setNuevasNotas] = useState(pedido.notas_cocina || '');
   const [mostrarCambioPrioridad, setMostrarCambioPrioridad] = useState(false);
 
-  const formatearTiempo = (minutos: number): string => {
-    if (minutos < 60) {
-      return `${minutos}m`;
-    }
-    const horas = Math.floor(minutos / 60);
-    const mins = minutos % 60;
-    return `${horas}h ${mins}m`;
-  };
 
   const obtenerIconoEstado = (estado: string): string => {
     switch (estado) {
