@@ -39,7 +39,7 @@ export default function MeseroLogin({ onLoginSuccess }: MeseroLoginProps) {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: 'linear-gradient(135deg, #f5f7fa 0%, #edf1f5 100%)',
       padding: '1rem'
     }}>
       <div style={{
@@ -105,7 +105,7 @@ export default function MeseroLogin({ onLoginSuccess }: MeseroLoginProps) {
                 outline: 'none',
                 backgroundColor: isLoading ? '#f9fafb' : 'white'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#667eea'}
+              onFocus={(e) => e.target.style.borderColor = '#9ca3af'}
               onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
             />
           </div>
@@ -137,7 +137,7 @@ export default function MeseroLogin({ onLoginSuccess }: MeseroLoginProps) {
                 outline: 'none',
                 backgroundColor: isLoading ? '#f9fafb' : 'white'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#667eea'}
+              onFocus={(e) => e.target.style.borderColor = '#9ca3af'}
               onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
             />
           </div>
@@ -162,11 +162,9 @@ export default function MeseroLogin({ onLoginSuccess }: MeseroLoginProps) {
             style={{
               width: '100%',
               padding: '0.875rem',
-              background: isLoading || !usuario || !password 
-                ? '#9ca3af' 
-                : 'linear-gradient(135deg, #667eea, #764ba2)',
+              background: isLoading || !usuario || !password ? '#9ca3af' : '#4b5563',
               color: 'white',
-              border: 'none',
+              border: '1px solid #374151',
               borderRadius: '12px',
               fontSize: '1rem',
               fontWeight: '600',
@@ -199,8 +197,8 @@ export default function MeseroLogin({ onLoginSuccess }: MeseroLoginProps) {
         </form>
 
         <div style={{
-          background: '#f0f9ff',
-          border: '1px solid #0ea5e9',
+          background: '#f3f4f6',
+          border: '1px solid #e5e7eb',
           borderRadius: '12px',
           padding: '1rem',
           marginTop: '1.5rem'
@@ -208,7 +206,7 @@ export default function MeseroLogin({ onLoginSuccess }: MeseroLoginProps) {
           <h4 style={{
             fontSize: '0.875rem',
             fontWeight: '600',
-            color: '#0369a1',
+            color: '#374151',
             margin: 0,
             marginBottom: '0.5rem'
           }}>
@@ -216,7 +214,7 @@ export default function MeseroLogin({ onLoginSuccess }: MeseroLoginProps) {
           </h4>
           <div style={{
             fontSize: '0.75rem',
-            color: '#0369a1',
+            color: '#4b5563',
             lineHeight: '1.4'
           }}>
             <div><strong>Carlos:</strong> usuario "carlos", contraseña "123456"</div>

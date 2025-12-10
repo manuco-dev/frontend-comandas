@@ -52,10 +52,7 @@ function Navigation() {
             fontSize: '1.25rem', 
             fontWeight: 700, 
             textDecoration: 'none',
-            background: 'linear-gradient(135deg, #667eea, #764ba2)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text'
+            color: '#4b5563'
           }}
         >
           🍽️ Comandas
@@ -84,9 +81,10 @@ function Navigation() {
                       display: 'flex',
                       alignItems: 'center',
                       gap: '0.5rem',
-                      background: 'linear-gradient(135deg, #667eea, #764ba2)',
-                      color: 'white',
-                      fontWeight: 700
+                      background: '#e5e7eb',
+                      color: '#374151',
+                      fontWeight: 700,
+                      border: '1px solid #d1d5db'
                     }}
                   >
                     ☰ Menú
@@ -176,14 +174,14 @@ function Navigation() {
           {meseroActual && <SessionTimer />}
           {meseroActual && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ color: 'rgba(255,255,255,0.85)' }}>
-                Hola, <strong style={{ color: '#fff' }}>{meseroActual.nombre}</strong>
+              <span style={{ color: '#374151' }}>
+                Hola, <strong style={{ color: '#374151' }}>{meseroActual.nombre}</strong>
                 {meseroActual.esAdmin && <span style={{ marginLeft: '0.25rem' }}>👑</span>}
               </span>
               <button
                 onClick={logout}
                 className="btn"
-                style={{ background: 'linear-gradient(135deg, #e53e3e, #c53030)', padding: '8px 14px', fontSize: '0.875rem' }}
+                style={{ background: '#e5e7eb', color: '#374151', border: '1px solid #d1d5db', padding: '8px 14px', fontSize: '0.875rem' }}
               >
                 Cerrar Sesión
               </button>
